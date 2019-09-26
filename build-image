@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -ex
+
+: ${BUILD_BASE:=false}
+: ${IMAGE_TAG:=unset}
+: ${IMAGE_NAME:=container-registry.dacodastrack.com/web-spherical-harmonics:$IMAGE_TAG}
+
+function base()
+{
+    MOUNT=$(buildah mount "$CONTAINER")
+
+    buildah run "$CONTAINER" -- \
+            /bin/sh -c \
+                'apt-get update && 
+                 apt-get install -y \
+                     g++ \
+                     make \
+                     pkg-config \
+                     libgsl-dev \
+                     libfcgi-dev \
+                     libmagickwand-dev \
+                     libmagickwand-6-headers \
+                     libltdl-dev \
+                     libx11-6 \
+                     liblcms2-dev \
+                     libxext-dev \
+                     libfreetype6-dev \
+                     libapache2-mod-fcgid'
+}
+
+if [ "$BUILD_BASE" = "true" ]
+then
+    CONTAINER=$(buildah from docker.io/httpd)
+    base 
+    buildah commit "$CONTAINER" ${IMAGE_NAME}-base
+else
+    CONTAINER=$(buildah from containers-storage:${IMAGE_NAME}-base)
+fi
+
+buildah copy "$CONTAINER" src/ /usr/local/src/web-spherical-harmonics/
+buildah copy "$CONTAINER" httpd.conf /usr/local/apache2/conf/httpd.conf
+buildah copy "$CONTAINER" srv/ /usr/local/apache2/htdocs/
+
+COMMAND=$(cat <<EOF
+chown -R daemon:daemon \
+          /var/lib/apache2 \
+          /usr/lib/apache2/modules/mod_fcgid.so \
+    && mkdir -p /usr/local/apache2/fcgi-bin/ \
+    && make clean -C /usr/local/src/web-spherical-harmonics \
+    && CXXFLAGS=-DUBUNTU make -C /usr/local/src/web-spherical-harmonics \
+    && cp /usr/local/src/web-spherical-harmonics/build/texture-generator \
+       /usr/local/apache2/fcgi-bin/texture-generator \
+    && chown -R daemon:daemon /usr/local/apache2/fcgi-bin/ \
+    && chown -R daemon:daemon /usr/local/apache2/htdocs
+EOF
+)
+
+buildah run "$CONTAINER" -- sh -c "$COMMAND"
+IMAGE_ID=$(buildah commit "$CONTAINER" ${IMAGE_NAME})
+
+echo "Pushing image '$IMAGE_ID'"
+skopeo copy containers-storage:$IMAGE_NAME docker://$IMAGE_NAME
