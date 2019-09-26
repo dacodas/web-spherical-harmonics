@@ -65,7 +65,7 @@ function render(time)
     var offset = 0;
     var count = 3;
 
-    eye.rho = 3 + 2 * Math.cos(time * 0.001)
+    eye.rho = 3 + 2 * Math.cos(time * 0.004)
 
     let eye_position = glm.vec3(
         eye.rho * Math.sin(eye.theta) * Math.cos(eye.phi),
