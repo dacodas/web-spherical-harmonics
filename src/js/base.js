@@ -20,6 +20,9 @@ var surface_element_buffer;
 var baseProgram;
 var positionBuffer;
 
+var amplitude = 0;
+var pause = false;
+
 function eye_position()
 {
     return glm.vec3(
@@ -83,9 +86,59 @@ function initialize()
         alert("Unable to initialize WebGL. Your browser or machine may not support it.");
     }
 
+    gl.enable(gl.DEPTH_TEST)
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
     initializeTextureBuffers()
     initializeBaseBuffers()
     initializeSurfaceBuffers()
+    setupControls()
+}
+
+function setupControls()
+{
+    document.addEventListener('keydown', function (event) {
+
+        console.log(event.key + " " + event.keyCode)
+
+        if (event.defaultPrevented) {
+            return;
+        }
+
+        var key = event.key || event.keyCode;
+
+        if ( key === 'w' )
+        {
+            eye.theta += 0.1
+        }
+        if ( key === 's' )
+        {
+            eye.theta -= 0.1
+        }
+        if ( key === 'd' )
+        {
+            eye.phi += 0.1
+        }
+        if ( key === 'a' )
+        {
+            eye.phi -= 0.1
+        }
+        if ( key === 'ArrowUp' )
+        {
+            eye.rho -= 0.5
+        }
+        if ( key === 'ArrowDown' )
+        {
+            eye.rho += 0.5
+        }
+        if ( key === 'q' )
+        {
+            pause = !pause
+        }
+
+        console.log(eye_position().elements)
+    });
 }
 
 function baseVertexAttribute()
@@ -146,15 +199,16 @@ function render(time)
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // eye.rho = 8 + 2 * Math.cos(time * 0.004)
-    eye.rho = 5
+    // eye.rho = 5
     let view_matrix = glm.lookAt(
         eye_position(),
         glm.vec3(0, 0, 0),
-        glm.vec3(0, 1, 0)
+        glm.vec3(0, 0, 1)
     )
 
     let projection_matrix = glm.perspective( Math.PI / 2, (640 / 480), 0.1, 10000 )
-    let model_matrix = glm.rotate(time * 0.001, glm.vec3(0, 1, 0))
+    // let model_matrix = glm.rotate(time * 0.001, glm.vec3(0, 1, 0))
+    let model_matrix = identity4
 
     gl.useProgram(baseProgram)
     baseVertexAttribute()
@@ -181,6 +235,28 @@ function render(time)
     gl.useProgram(baseProgram)
     gl.drawArrays(gl.TRIANGLES, 0, 3)
 
+    gl.useProgram(surfaceProgram)
+
+    surfaceVertexAttribute()
+
+    gl.activeTexture(gl.TEXTURE0)
+    gl.bindTexture(gl.TEXTURE_2D, rhoTexture)
+
+    var rhoSamplerVertexUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler_vertex")
+    var rhoSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler")
+    var amplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "amplitude")
+    var maxAmplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "max_amplitude")
+
+    amplitude = pause ? amplitude : 1.0 * Math.cos( time * 0.004 )
+
+    gl.uniform1i(rhoSamplerVertexUniformLocation, 0)
+    gl.uniform1i(rhoSamplerUniformLocation, 0)
+    gl.uniform1f(amplitudeUniformLocation, amplitude)
+    gl.uniform1f(maxAmplitudeUniformLocation, 1.0)
+
+    // gl.drawElements(gl.TRIANGLE_STRIP, 101*101, gl.UNSIGNED_SHORT, 0)
+    gl.drawElements(gl.TRIANGLE_STRIP, 20000, gl.UNSIGNED_SHORT, 0)
+
     gl.useProgram(textureProgram)
 
     // uniform sampler2D rho_sampler;
@@ -197,26 +273,6 @@ function render(time)
 
     gl.drawElements(gl.TRIANGLE_STRIP, 4, gl.UNSIGNED_BYTE, 0)
 
-    gl.useProgram(surfaceProgram)
-
-    surfaceVertexAttribute()
-
-    gl.activeTexture(gl.TEXTURE0)
-    gl.bindTexture(gl.TEXTURE_2D, rhoTexture)
-
-    var rhoSamplerVertexUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler_vertex")
-    var rhoSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler")
-    var amplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "amplitude")
-    var maxAmplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "max_amplitude")
-
-    gl.uniform1i(rhoSamplerVertexUniformLocation, 0)
-    gl.uniform1i(rhoSamplerUniformLocation, 0)
-    gl.uniform1f(amplitudeUniformLocation, 1.0 * Math.cos( time * 0.004 ))
-    gl.uniform1f(maxAmplitudeUniformLocation, 2.0)
-
-    // gl.drawElements(gl.TRIANGLE_STRIP, 101*101, gl.UNSIGNED_SHORT, 0)
-    gl.drawElements(gl.TRIANGLE_STRIP, 20000, gl.UNSIGNED_SHORT, 0)
-    
     // console.log(time)
 
     requestAnimationFrame(render)

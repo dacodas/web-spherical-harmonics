@@ -12,7 +12,7 @@
 
          void main()
          {
-             gl_Position = vec4( vertex_position, 0, 1 );
+             gl_Position = vec4( 0.5 + ( vertex_position / 2.0 ), 0, 1 );
              texture_coordinates = vertex_position;
          }
         </script>
@@ -38,7 +38,7 @@
         <script id="surface-vertex-shader" type="notjs">
          precision mediump float;
 
-         attribute vec3 vertex_position;
+         attribute vec2 vertex_position;
          // attribute vec3 model_position;
 
          varying vec2 texture_coordinates;
@@ -79,7 +79,6 @@
               *                             0.0, 1.0, 0.0, 0.0,
               *                             0.0, 0.0, 1.0, 0.0,
               *                             model_position.x, model_position.y, model_position.z, 1.0); */
-
              
 
              // mat4 instanced_model = mat4(1.0, 0.0, 0.0, 0.0,
@@ -105,7 +104,8 @@
 
          void main()
          {
-             float rho = texture2D(rho_sampler, texture_coordinates).r;
+             // float rho = texture2D(rho_sampler, texture_coordinates).r;
+             float rho = texture2D(rho_sampler, texture_coordinates.yx).r;
 
              // Goes from -1 to 1
              float normalized_rho = rho * (amplitude / max_amplitude);
@@ -113,7 +113,7 @@
              float color_range = 0.3;
              float red = 0.5 + ( color_range * normalized_rho ) / 2.0;
 
-             gl_FragColor = vec4(red, 0.0, 0.0, 1.0);
+             gl_FragColor = vec4(red, 1.0 - red, 0.0, 1.0);
          }
         </script>
 
