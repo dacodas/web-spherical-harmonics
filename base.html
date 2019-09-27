@@ -5,6 +5,36 @@
     <body>
         <canvas id="glCanvas" width="640" height="480"></canvas>
 
+
+        <script id="texture-vertex-shader" type="notjs">
+
+         attribute vec2 vertex_position;
+         varying vec2 texture_coordinates;
+
+         void main()
+         {
+             gl_Position = vec4(vertex_position + vec2(0.5, 0.5), 0, 1);
+             texture_coordinates = vertex_position;
+         }
+        </script>
+
+        <script id="texture-fragment-shader" type="notjs">
+         precision mediump float;
+
+         varying vec2 texture_coordinates;
+         // varying vec4 color;
+
+         uniform sampler2D rho_sampler;
+         uniform float screen_scale;
+
+         void main()
+         {
+             float rho = texture2D(rho_sampler, vec2(texture_coordinates.x * screen_scale, texture_coordinates.y)).r;
+
+             gl_FragColor = vec4( rho, rho, rho, 1.0);
+         }
+        </script>
+
         <script id="base-vertex-shader" type="notjs">
 
          uniform mat4 model;
@@ -42,6 +72,7 @@
 
         <script src="https://cdn.rawgit.com/humbletim/glm-js/31fd034b/build/glm-js.min.js"></script>
         <script src="./js/utilities.js"></script>
+        <script src="./js/gl-utilities.js"></script>
         <script src="./js/base.js"></script>
     </body>
 </html>
