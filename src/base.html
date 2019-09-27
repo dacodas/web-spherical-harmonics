@@ -1,0 +1,160 @@
+<html>
+    <head>
+        <title>Spherical harmonics</title>
+    </head>
+    <body>
+        <canvas id="glCanvas" width="640" height="480"></canvas>
+
+        <script id="texture-vertex-shader" type="notjs">
+
+         attribute vec2 vertex_position;
+         varying vec2 texture_coordinates;
+
+         void main()
+         {
+             gl_Position = vec4( vertex_position, 0, 1 );
+             texture_coordinates = vertex_position;
+         }
+        </script>
+
+        <script id="texture-fragment-shader" type="notjs">
+         precision mediump float;
+
+         varying vec2 texture_coordinates;
+         // varying vec4 color;
+
+         uniform sampler2D rho_sampler;
+         uniform float screen_scale;
+
+         void main()
+         {
+             // float rho = texture2D(rho_sampler, vec2(texture_coordinates.x * screen_scale, texture_coordinates.y)).r;
+             // gl_FragColor = vec4( color, 1.0 );
+
+             gl_FragColor = texture2D(rho_sampler, vec2(texture_coordinates.x, texture_coordinates.y));
+         }
+        </script>
+
+        <script id="surface-vertex-shader" type="notjs">
+         precision mediump float;
+
+         attribute vec3 vertex_position;
+         // attribute vec3 model_position;
+
+         varying vec2 texture_coordinates;
+
+         uniform float amplitude;
+
+         uniform sampler2D rho_sampler_vertex;
+         uniform sampler2D x_sampler;
+         uniform sampler2D y_sampler;
+         uniform sampler2D z_sampler;
+
+         uniform mat4 model;
+         uniform mat4 view;
+         uniform mat4 proj;
+
+         #define M_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679
+
+         void main()
+         {
+             float rho = 1.0 + amplitude * ( 2.0 * texture2D( rho_sampler_vertex, vertex_position.xy ).r - 1.0 );
+             // float rho = 1.0;
+
+             // Might be nice to grab these from a texture rather than computing them every time
+             // float x = rho * texture( x_sampler, vertex_position.xy ).r;
+             // float y = rho * texture( y_sampler, vertex_position.xy ).r;
+             // float z = rho * texture( z_sampler, vertex_position.xy ).r;
+
+             float x = rho * sin( M_PI * vertex_position.x ) * cos( 2.0 * M_PI * vertex_position.y );
+             float y = rho * sin( M_PI * vertex_position.x ) * sin( 2.0 * M_PI * vertex_position.y );
+             float z = rho * cos( M_PI * vertex_position.x );
+
+             // mat4 instanced_model = mat4(1.0, 0.0, 0.0, model_position.x,
+             //                             0.0, 1.0, 0.0, model_position.y,
+             //                             0.0, 0.0, 1.0, model_position.z,
+             //                             0.0, 0.0, 0.0, 1.0);
+
+             /* mat4 instanced_model = mat4(1.0, 0.0, 0.0, 0.0,
+              *                             0.0, 1.0, 0.0, 0.0,
+              *                             0.0, 0.0, 1.0, 0.0,
+              *                             model_position.x, model_position.y, model_position.z, 1.0); */
+
+             
+
+             // mat4 instanced_model = mat4(1.0, 0.0, 0.0, 0.0,
+             //                             0.0, 1.0, 0.0, 0.0,
+             //                             0.0, 0.0, 1.0, 0.0,
+             //                             0.0, 0.0, 0.0, 1.0);
+
+             gl_Position = proj * view * model * vec4( vec3(x, y, z), 1.0 );
+
+             texture_coordinates = vertex_position.xy;
+         }
+        </script>
+
+        <script id="surface-fragment-shader" type="notjs">
+         precision mediump float;
+
+         varying vec2 texture_coordinates;
+         // out vec4 color;
+
+         uniform sampler2D rho_sampler;
+         uniform float max_amplitude;
+         uniform float amplitude;
+
+         void main()
+         {
+             float rho = texture2D(rho_sampler, texture_coordinates).r;
+
+             // Goes from -1 to 1
+             float normalized_rho = rho * (amplitude / max_amplitude);
+
+             float color_range = 0.3;
+             float red = 0.5 + ( color_range * normalized_rho ) / 2.0;
+
+             gl_FragColor = vec4(red, 0.0, 0.0, 1.0);
+         }
+        </script>
+
+        <script id="base-vertex-shader" type="notjs">
+
+         uniform mat4 model;
+         uniform mat4 view;
+         uniform mat4 proj;
+
+         #define M_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679
+         
+         // an attribute will receive data from a buffer
+         attribute vec4 a_position;
+         
+         // all shaders have a main function
+         void main() {
+             
+             // gl_Position is a special variable a vertex shader
+             // is responsible for setting
+             gl_Position = proj * view * model * a_position;
+         }
+         
+        </script>
+        
+        <script id="base-fragment-shader" type="notjs">
+         
+         // fragment shaders don't have a default precision so we need
+         // to pick one. mediump is a good default
+         precision mediump float;
+         
+         void main() {
+             // gl_FragColor is a special variable a fragment shader
+             // is responsible for setting
+             gl_FragColor = vec4(1, 0, 0.5, 1); // return redish-purple
+         }
+         
+        </script>
+
+        <script src="https://cdn.rawgit.com/humbletim/glm-js/31fd034b/build/glm-js.min.js"></script>
+        <script src="./js/utilities.js"></script>
+        <script src="./js/gl-utilities.js"></script>
+        <script src="./js/base.js"></script>
+    </body>
+</html>
