@@ -4,7 +4,7 @@ var positions;
 var rhoTextureURL = '/spherical-harmonics/images/rho.png';
 var normalsTextureURL = '/spherical-harmonics/images/rho-normals.png';
 
-var eye = {'rho': 5, 'theta': 0, 'phi': 0.1}
+var eye = {'rho': 5.0, 'theta': 0.01, 'phi': 0.0}
 
 var identity4 = glm.mat4(1, 0, 0, 0,
                          0, 1, 0, 0,
@@ -115,11 +115,13 @@ function setupControls()
 
         if ( key === 'w' )
         {
-            eye.theta += 0.1
+            if ( eye.theta > 0.1 )
+                eye.theta -= 0.1
         }
         if ( key === 's' )
         {
-            eye.theta -= 0.1
+            if ( eye.theta < Math.PI - 0.1) 
+                eye.theta += 0.1
         }
         if ( key === 'd' )
         {
