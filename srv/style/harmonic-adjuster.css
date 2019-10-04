@@ -1,0 +1,39 @@
+div.harmonic-adjuster input.amplitude
+{
+    width: 6em;
+    height: 15px;
+    border-radius: 5px;  
+    background: #d3d3d3;
+    outline: none;
+}
+
+div.harmonic-adjuster td
+{
+    text-align: center;
+}
+
+div.harmonic-adjuster input[type=text]
+{
+    width: 2em;
+    text-align: center;
+    border: none;
+    font-weight: bold;
+    font-size: 1.3em;
+}
+
+div.harmonic-adjuster
+{
+    border: 2px solid black;
+    border-radius: 10px;
+    padding: 1em;
+    margin: 1em;
+    display: inline-block;
+}
+
+div.harmonic-adjuster button
+{
+    font-size: 1.5em;
+    font-weight: bold;
+    border: none;
+    background: none;
+}

@@ -109,6 +109,10 @@ function requestNewTextures(texture_components) {
     textureRequest.send();
 }
 
+function requestNewTexturesFromTextarea() {
+    requestNewTextures(document.getElementById('new-texture-specification').value.replace("\n", " "));
+}
+
 function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
 }

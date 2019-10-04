@@ -3,16 +3,29 @@
         <title>Spherical harmonics</title>
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
         <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <link rel="stylesheet" type="text/css" href="/spherical-harmonics/style/base.css">
+        <link rel="stylesheet" type="text/css" href="/spherical-harmonics/style/harmonic-adjuster.css">
+        <meta charset="UTF-8">
     </head>
     <body>
-        <canvas id="glCanvas" width="640" height="480"></canvas>
+        <canvas id="glCanvas" width="640" height="480"></canvas><br>
 
+        <div id="harmonic-adjusters">
+        </div>
+
+        <button id="refresh-texture">Refresh texture</button>
+        <button id="another-harmonic">Add another harmonic</button>
+
+        <p>
+            Use keyboard W, A, S, D, ⇧, ⇩ to move the camera
+        </p>
         <p>
             Try some of the following!
         </p>
         <ul>
             <li>\(Y_5^0 + Y_{10}^{10}\)</li>
             <li>\(Y_{2}^{2} + Y_{10}^{10}\)</li>
+            <li>\(Y_{3}^{0} + Y_{20}^{15}\)</li>
         </ul>
 
         <script id="texture-vertex-shader" type="notjs">
@@ -190,12 +203,12 @@
              // is responsible for setting
              gl_FragColor = vec4(1, 0, 0.5, 1); // return redish-purple
          }
-         
         </script>
 
         <script src="https://cdn.rawgit.com/humbletim/glm-js/31fd034b/build/glm-js.min.js"></script>
-        <script src="./js/utilities.js"></script>
-        <script src="./js/gl-utilities.js"></script>
-        <script src="./js/base.js"></script>
+        <script src="/spherical-harmonics/js/utilities.js"></script>
+        <script src="/spherical-harmonics/js/gl-utilities.js"></script>
+        <script src="/spherical-harmonics/js/base.js"></script>
+        <script src="/spherical-harmonics/js/controller.js"></script>
     </body>
 </html>

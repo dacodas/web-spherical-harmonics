@@ -4,7 +4,7 @@ var positions;
 var rhoTextureURL = '/spherical-harmonics/images/rho.png';
 var normalsTextureURL = '/spherical-harmonics/images/rho-normals.png';
 
-var eye = {'rho': 5.0, 'theta': 0.01, 'phi': 0.0}
+var eye = {'rho': 2.5, 'theta': Math.PI / 4.0, 'phi': Math.PI}
 
 var identity4 = glm.mat4(1, 0, 0, 0,
                          0, 1, 0, 0,
@@ -12496,10 +12496,5 @@ var samplerPositions = new Float32Array(
         ]
     )
 
-
-
 initialize()
 requestAnimationFrame(render)
-
-
-    
