@@ -160,7 +160,8 @@ function Harmonics()
 {
     this.harmonicsCount = 0
     this.harmonics = []
-    this.addHarmonic(5, 3, 1.0, 0.0)
+    this.addHarmonic(3, 0, 1.0, 0.0)
+    this.addHarmonic(20, 15, 1.0, 0.0)
 }
 
 Harmonics.prototype.addHarmonic =
@@ -196,3 +197,4 @@ document.getElementById("refresh-texture").addEventListener(
     }
 )
 
+requestNewTextures(harmonics.serialize())
