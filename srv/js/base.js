@@ -26,6 +26,8 @@ var positionBuffer;
 var amplitude = 0;
 var pause = false;
 
+var resolution = 100;
+
 function eye_position()
 {
     return glm.vec3(
@@ -257,14 +259,18 @@ function render(time)
     gl.uniform1i(normalsSamplerUniformLocation, 0)
     gl.uniform1f(amplitudeUniformLocation, amplitude)
     gl.uniform1f(maxAmplitudeUniformLocation, 1.0)
-    // gl.uniform3f(lightPositionUniformLocation, 6.0, 0.0, 0.0)
     gl.uniform3fv(lightPositionUniformLocation, eye_position().elements)
     gl.uniform3fv(viewPositionUniformLocation, eye_position().elements)
 
-    // Originally from 0 to 196
-    for ( var row = 20; row < 176; ( row += 2 ) )
+    // The initial two elements, and then every square needs two
+    // elements to draw its triangles
+    var row_size = 2 * (resolution + 1);
+
+    for ( var row = 10; row < 90; ++row )
     {
-        gl.drawElements(gl.TRIANGLE_STRIP, 202, gl.UNSIGNED_SHORT, 202 * row)
+        // I believe we multiply by two here for the inidices pointer
+        // to account for gl.UNSIGNED_SHORT being two octets long
+        gl.drawElements(gl.TRIANGLE_STRIP, row_size, gl.UNSIGNED_SHORT, 2 * row * row_size)
     }
 
     gl.useProgram(textureProgram)
