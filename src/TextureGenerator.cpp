@@ -122,7 +122,7 @@ void TextureGenerator::calculate_rho()
 
 void TextureGenerator::calculate_normals()
 {
-    std::vector<int> range(steps - 1);
+    std::vector<int> range(steps);
     std::iota(range.begin(), range.end(), 0);
 
     normals_values = std::vector<std::array<int, 3>>(precise_rho_values.size());
@@ -137,9 +137,10 @@ void TextureGenerator::calculate_normals()
                     range.end(),
                     [&] (const int& column)
                         {
+
                             int index = row * steps + column;
-                            double x_diff = precise_rho_values[index + 1] - precise_rho_values[index];
-                            double y_diff = precise_rho_values[index + steps] - precise_rho_values[index];
+                            double x_diff = column == steps - 1 ? precise_rho_values[index - ( steps - 1 )] - precise_rho_values[index] : precise_rho_values[index + 1] - precise_rho_values[index];
+                            double y_diff = row == steps - 1 ? 0.0 : precise_rho_values[index + steps] - precise_rho_values[index];
 
                             double theta = - 2 * M_PI * x_diff / 100.0;
                             double phi = M_PI * y_diff / 100.0;
