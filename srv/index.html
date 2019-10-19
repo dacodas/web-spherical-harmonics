@@ -141,6 +141,7 @@
              vec3 ambient = ambientStrength * lightColor;
              float specularStrength = 0.5;
 
+             // Why does the lighting only line up when subtracting 45 degrees from phi
              vec3 normal_tpr = ( 2.0 * texture2D( normals_sampler, texture_coordinates ) - 1.0 ).xyz;
              float rho = position_tpr.z;
              float theta = position_tpr.x;
@@ -167,7 +168,7 @@
 
              // For some reason, the specular spot is shown on the y-axis and not the z-axis
              gl_FragColor = vec4( ( ambient + diffuse + specular ) * objectColor, 1.0 );
-             /* gl_FragColor = vec4( ( norm / 2.0 ) + 0.5, 1.0 ); */
+             // gl_FragColor = vec4( ( norm / 2.0 ) + 0.5, 1.0 );
          }
         </script>
 
