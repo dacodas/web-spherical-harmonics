@@ -108,7 +108,6 @@
          varying vec2 texture_coordinates;
          varying vec3 position;
          varying vec3 position_tpr;
-         // out vec4 color;
 
          uniform sampler2D rho_sampler;
          uniform sampler2D normals_sampler;
@@ -118,19 +117,6 @@
          uniform vec3 view_position;
 
          #define M_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679
-
-         void old_main()
-         {
-             float rho = texture2D(rho_sampler, texture_coordinates).r;
-
-             // Goes from -1 to 1
-             float normalized_rho = rho * (amplitude / max_amplitude);
-
-             float color_range = 0.3;
-             float red = 0.5 + ( color_range * normalized_rho ) / 2.0;
-
-             gl_FragColor = vec4(red, 0, 0.0, 1.0);
-         }
 
          // https://learnopengl.com/Lighting/Basic-Lighting
          void main()
@@ -166,7 +152,6 @@
              float spec = pow(max(dot(view_direction, reflect_direction), 0.0), 64.0);
              vec3 specular = specularStrength * spec * lightColor;
 
-             // For some reason, the specular spot is shown on the y-axis and not the z-axis
              gl_FragColor = vec4( ( ambient + diffuse + specular ) * objectColor, 1.0 );
              // gl_FragColor = vec4( ( norm / 2.0 ) + 0.5, 1.0 );
          }

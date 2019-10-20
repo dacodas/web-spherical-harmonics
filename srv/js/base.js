@@ -163,23 +163,6 @@ function setupControls()
     });
 }
 
-function baseVertexAttribute()
-{
-    gl.useProgram(baseProgram);
-
-    var positionAttributeLocation = gl.getAttribLocation(baseProgram, "a_position");
-    gl.enableVertexAttribArray(positionAttributeLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-    // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-    var size = 2;          // 2 components per iteration
-    var type = gl.FLOAT;   // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;        // start at the beginning of the buffer
-    gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset)
-}
-
 function textureVertexAttribute()
 {
     gl.useProgram(textureProgram)
