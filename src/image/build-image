@@ -38,18 +38,19 @@ else
     CONTAINER=$(buildah from containers-storage:${IMAGE_NAME}-base)
 fi
 
-buildah copy "$CONTAINER" src/ /usr/local/src/web-spherical-harmonics/
-buildah copy "$CONTAINER" httpd.conf /usr/local/apache2/conf/httpd.conf
-buildah copy "$CONTAINER" srv/ /usr/local/apache2/htdocs/
+buildah copy "$CONTAINER" src/texture-generator /usr/local/src/web-spherical-harmonics/texture-generator
+buildah copy "$CONTAINER" src/image/httpd.conf /usr/local/apache2/conf/httpd.conf
+buildah copy "$CONTAINER" build/srv/ /usr/local/apache2/htdocs/
 
 COMMAND=$(cat <<EOF
 chown -R daemon:daemon \
           /var/lib/apache2 \
           /usr/lib/apache2/modules/mod_fcgid.so \
     && mkdir -p /usr/local/apache2/fcgi-bin/ \
-    && make clean -C /usr/local/src/web-spherical-harmonics \
-    && CXXFLAGS=-DUBUNTU make -C /usr/local/src/web-spherical-harmonics \
-    && cp /usr/local/src/web-spherical-harmonics/build/texture-generator \
+    && mkdir -p /usr/local/apache2/htdocs/images \
+    && make clean -C /usr/local/src/web-spherical-harmonics/texture-generator \
+    && CXXFLAGS=-DUBUNTU make -C /usr/local/src/web-spherical-harmonics/texture-generator \
+    && cp /usr/local/src/web-spherical-harmonics/texture-generator/build/texture-generator \
        /usr/local/apache2/fcgi-bin/texture-generator \
     && chown -R daemon:daemon /usr/local/apache2/fcgi-bin/ \
     && chown -R daemon:daemon /usr/local/apache2/htdocs
