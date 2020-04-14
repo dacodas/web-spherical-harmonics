@@ -279,8 +279,8 @@ function render(time)
     requestAnimationFrame(render)
 }
 
-var elementIndices = new Uint16Array([ ${ELEMENT_INDICES} ])
-var samplerPositions = new Float32Array([ ${SAMPLE_POSITIONS} ])
+var elementIndices = new Uint16Array([ %{ELEMENT_INDICES} ])
+var samplerPositions = new Float32Array([ %{SAMPLE_POSITIONS} ])
 
 initialize()
 requestAnimationFrame(render)

@@ -7,6 +7,10 @@ icosahedron() {
 
 template() {
 
+	# Environment variables and arguments share the same memory 
+	# space which is limited by ARG_MAX. Because of this, I can't 
+	# just envsubst the entirety of the indices and vertices files
+
 	while read TEMPLATE_FILE
 	do
 		envsubst \
@@ -18,21 +22,18 @@ template() {
 }
 
 srv() {
+	set -a
 	read ELEMENT_INDICES_LENGTH < <( wc -l < build/icosahedron/indices )
 	read ELEMENT_INDICES_LENGTH < <( echo "3 * ${ELEMENT_INDICES_LENGTH}" | bc )
 
-	read -d '' ELEMENT_INDICES < build/icosahedron/indices
-	read -d '' SAMPLE_POSITIONS < build/icosahedron/vertices
+	ELEMENT_INDICES=build/icosahedron/indices
+	SAMPLE_POSITIONS=build/icosahedron/vertices
 
-	export ELEMENT_INDICES ELEMENT_INDICES_LENGTH SAMPLE_POSITIONS
-
-	echo $ELEMENT_INDICES_LENGTH
+	set +a
 
 	rsync -av srv/ build/srv/
 
 	find build/ -name '*.template' | template
-
-	# envsubst srv/
 }
 
 "${@}"
