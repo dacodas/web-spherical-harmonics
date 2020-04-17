@@ -103,7 +103,13 @@ void TextureGenerator::calculate_rho()
                             calculated_components.begin(),
                             [&] (const Harmonic& component) -> double
                                 {
-                                    double rho = component.amplitude * cos(component.m*current_phi) * gsl_sf_legendre_sphPlm(component.l, component.m, cos(current_theta));
+                                    double rho = \
+				    component.amplitude \
+				    	* cos(component.m * current_phi) \
+					* gsl_sf_legendre_sphPlm( \
+							component.l, \
+							component.m, \
+							cos(current_theta));
                                     return rho;
                                 }
                             );

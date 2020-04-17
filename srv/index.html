@@ -65,6 +65,7 @@
          varying vec3 position;
 
          uniform float amplitude;
+         uniform float phi_offset;
 
          uniform sampler2D rho_sampler_vertex;
          uniform sampler2D x_sampler;
@@ -86,8 +87,8 @@
              // float y = rho * texture( y_sampler, vertex_position.xy ).r;
              // float z = rho * texture( z_sampler, vertex_position.xy ).r;
 
-             float theta = M_PI * vertex_position.x;
-             float phi = 2.0 * M_PI * vertex_position.y;
+             float theta = M_PI * ( vertex_position.x );
+             float phi = 2.0 * M_PI * ( vertex_position.y );
 
              float x = rho * sin( theta ) * cos( phi );
              float y = rho * sin( theta ) * sin( phi );

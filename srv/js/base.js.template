@@ -241,16 +241,20 @@ function render(time)
     var rhoSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler")
     var normalsSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "normals_sampler")
     var amplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "amplitude")
+    var phi_offsetUniformLocation = gl.getUniformLocation(surfaceProgram, "phi_offset")
     var maxAmplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "max_amplitude")
     var lightPositionUniformLocation = gl.getUniformLocation(surfaceProgram, "light_position")
     var viewPositionUniformLocation = gl.getUniformLocation(surfaceProgram, "view_position")
 
     amplitude = pause ? amplitude : 1.0 * Math.cos( time * 0.004 )
+    // amplitude = 1.0
+    phi_offset = pause ? phi_offset : time * 0.0001
 
     gl.uniform1i(rhoSamplerVertexUniformLocation, 0)
     gl.uniform1i(rhoSamplerUniformLocation, 0)
     gl.uniform1i(normalsSamplerUniformLocation, 0)
     gl.uniform1f(amplitudeUniformLocation, amplitude)
+    gl.uniform1f(phi_offsetUniformLocation, phi_offset)
     gl.uniform1f(maxAmplitudeUniformLocation, 1.0)
     gl.uniform3fv(lightPositionUniformLocation, eye_position().elements)
     gl.uniform3fv(viewPositionUniformLocation, eye_position().elements)
