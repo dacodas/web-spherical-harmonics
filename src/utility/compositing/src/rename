@@ -1,0 +1,11 @@
+#!/bin/bash
+
+while read IMAGE
+do
+	IFS=- read NAME L M AMPLITUDE <<< ${IMAGE%.pgm}
+	NEW_NAME=$( printf "%s-%03d-%03d.pgm" $NAME $L $M )
+
+	mv $IMAGE $NEW_NAME
+done < <( find . -name '*.pgm' )
+
+

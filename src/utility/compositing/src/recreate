@@ -1,0 +1,25 @@
+#!/bin/bash
+
+convert xc:black -resize 100x100 build/black.png
+
+convert png/rho-010-010.png png/rho-004-000.png -evaluate-sequence mean build/mean.png
+
+# outputs build/normal.png
+python src/normal.py
+
+convert build/normal.png xc:white -evaluate-sequence mean build/gray-normal.png
+convert build/mean.png -separate build/mean_RGB_%d.png
+
+composite \
+	-compose Multiply \
+	build/mean_RGB_0.png \
+	build/gray-normal.png \
+	build/multiply.png
+
+convert \
+	build/multiply.png \
+	build/black.png \
+	build/black.png \
+	-combine build/combined.png
+
+# -auto-level is nice for getting contrast
