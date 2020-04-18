@@ -1,8 +1,17 @@
 #!/bin/bash
 
+PI=$(bc -l <<< "4 * a(1)")
+
 convert xc:black -resize 100x100 build/precompile-animation/black.png
 convert xc:white xc:black -evaluate-sequence mean -resize 100x100 build/precompile-animation/gray.png
 convert build/precompile-animation/source.png -separate build/precompile-animation/channel-%d.png
+
+grayscale_to_redscale() {
+	convert $1 \
+		build/precompile-animation/black.png \
+		build/precompile-animation/black.png \
+		-combine $2
+}
 
 iterate_mean_with_gray() {
 	cp build/precompile-animation/channel-0.png build/precompile-animation/iteration-00.png
@@ -34,7 +43,6 @@ iterate_mean_with_gray() {
 }
 
 cosine() {
-	PI=$(bc -l <<< "4 * a(1)")
 	FREQUENCY=2
 	DELTA=0.01
 
@@ -56,4 +64,33 @@ cosine() {
 	done
 }
 
+
+normal_pulse() {
+	python src/animation-testing/wavelet.py	
+
+	convert 'xc:rgb(117, 117, 117)' -resize 100x100 build/gray117.png
+
+	composite -blend 20 build/wavelet.png build/gray117.png build/wavelet.png
+
+	convert build/wavelet.png \
+		-resize 300x100 \
+		-background 'rgb(117, 117, 117)' \
+		-gravity center \
+		-extent 300x100 build/expanded.png
+
+	for i in $(seq 0 200)
+	do
+		printf "( 40 * s(%s) ) ^ 2\n" "$i * $PI / 200"
+	done | bc -l | nl | while read i BLEND
+	do
+		GRAY=build/gray-wavelet-$(printf "%03d" $i).png
+		RED=build/wavelet-$(printf "%03d" $i).png
+		
+		convert build/expanded.png -crop 100x100+$i+0 $GRAY
+		composite -blend $BLEND $GRAY build/gray117.png $GRAY
+		grayscale_to_redscale $GRAY $RED
+	done
+}
+
 "${@}"
+

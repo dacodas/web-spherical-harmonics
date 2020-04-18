@@ -202,14 +202,14 @@ function surfaceVertexAttribute()
 }
 
 function loadAnimationTexture(index) {  
-	var currentURL = '/spherical-harmonics/images/frame-' + String(index + 1).padStart(3, '0') + '.png';
+	var currentURL = '/spherical-harmonics/images/wavelet-' + String(index + 1).padStart(3, '0') + '.png';
 
 	return loadRhoTexture(gl, currentURL)
 }
 
 function render(time)
 {
-    animationIndex = ( animationIndex + 1 ) % 100;
+    animationIndex = ( animationIndex + 1 ) % 200;
     rhoTexture = animationTextures[animationIndex]
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -301,5 +301,5 @@ var elementIndices = new Uint16Array([ %{ELEMENT_INDICES} ])
 var samplerPositions = new Float32Array([ %{SAMPLE_POSITIONS} ])
 
 initialize()
-animationTextures = [...Array(100).keys()].map(loadAnimationTexture)
+animationTextures = [...Array(200).keys()].map(loadAnimationTexture)
 requestAnimationFrame(render)
