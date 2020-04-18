@@ -1,64 +1,88 @@
 #!/bin/bash
 
-set -ex
+set -xeuo pipefail
 
-: ${BUILD_BASE:=false}
-: ${IMAGE_TAG:=unset}
-: ${IMAGE_NAME:=container-registry.dacodastrack.com/web-spherical-harmonics:$IMAGE_TAG}
+REGISTRY=container-registry.dacodastrack.com
+IMAGE_NAME_PREFIX=web-spherical-harmonics
+BASE_IMAGE_NAME=$REGISTRY/$IMAGE_NAME_PREFIX-base
+TEXTURE_GENERATOR_IMAGE_NAME=$REGISTRY/$IMAGE_NAME_PREFIX-texture-generator
+FINAL_IMAGE_NAME=$REGISTRY/$IMAGE_NAME_PREFIX
 
-function base()
-{
-    MOUNT=$(buildah mount "$CONTAINER")
+: ${IMAGE_TAG:=latest}
 
-    buildah run "$CONTAINER" -- \
-            /bin/sh -c \
-                'apt-get update && 
-                 apt-get install -y \
-                     g++ \
-                     make \
-                     pkg-config \
-                     libgsl-dev \
-                     libfcgi-dev \
-                     libmagickwand-dev \
-                     libmagickwand-6-headers \
-                     libltdl-dev \
-                     libx11-6 \
-                     liblcms2-dev \
-                     libxext-dev \
-                     libfreetype6-dev \
-                     libapache2-mod-fcgid'
+base_work() {
+	buildah run "$CONTAINER" sh <<"EOF"
+apt-get update
+apt-get install -y \
+	g++ \
+	make \
+	pkg-config \
+	libgsl-dev \
+	libfcgi-dev \
+	libmagickwand-dev \
+	libmagickwand-6-headers \
+	libltdl-dev \
+	libx11-6 \
+	liblcms2-dev \
+	libxext-dev \
+	libfreetype6-dev \
+	libapache2-mod-fcgid
+EOF
 }
 
-if [ "$BUILD_BASE" = "true" ]
-then
-    CONTAINER=$(buildah from docker.io/httpd)
-    base 
-    buildah commit "$CONTAINER" ${IMAGE_NAME}-base
-else
-    CONTAINER=$(buildah from containers-storage:${IMAGE_NAME}-base)
-fi
+texture_generator_work() {
+	buildah copy "$CONTAINER" src/texture-generator /usr/local/src/web-spherical-harmonics/texture-generator
 
-buildah copy "$CONTAINER" src/texture-generator /usr/local/src/web-spherical-harmonics/texture-generator
-buildah copy "$CONTAINER" src/image/httpd.conf /usr/local/apache2/conf/httpd.conf
-buildah copy "$CONTAINER" build/srv/ /usr/local/apache2/htdocs/
+	buildah run "$CONTAINER" sh <<"EOF"
+mkdir -p /usr/local/apache2/fcgi-bin
 
-COMMAND=$(cat <<EOF
+make clean -C /usr/local/src/web-spherical-harmonics/texture-generator 
+CXXFLAGS=-DUBUNTU make -C /usr/local/src/web-spherical-harmonics/texture-generator
+
+cp /usr/local/src/web-spherical-harmonics/texture-generator/build/texture-generator \
+       /usr/local/apache2/fcgi-bin/texture-generator \
+
+chown -R daemon:daemon /usr/local/apache2/fcgi-bin/
+EOF
+}
+
+final_work() {
+	buildah copy "$CONTAINER" src/image/httpd.conf /usr/local/apache2/conf/httpd.conf
+	buildah copy "$CONTAINER" build/srv/ /usr/local/apache2/htdocs/
+
+	buildah run "$CONTAINER" sh <<"EOF"
 chown -R daemon:daemon \
           /var/lib/apache2 \
-          /usr/lib/apache2/modules/mod_fcgid.so \
-    && mkdir -p /usr/local/apache2/fcgi-bin/ \
-    && mkdir -p /usr/local/apache2/htdocs/images \
-    && make clean -C /usr/local/src/web-spherical-harmonics/texture-generator \
-    && CXXFLAGS=-DUBUNTU make -C /usr/local/src/web-spherical-harmonics/texture-generator \
-    && cp /usr/local/src/web-spherical-harmonics/texture-generator/build/texture-generator \
-       /usr/local/apache2/fcgi-bin/texture-generator \
-    && chown -R daemon:daemon /usr/local/apache2/fcgi-bin/ \
-    && chown -R daemon:daemon /usr/local/apache2/htdocs
+          /usr/lib/apache2/modules/mod_fcgid.so
+
+
+mkdir -p /usr/local/apache2/htdocs/images 
+chown -R daemon:daemon /usr/local/apache2/htdocs
 EOF
-)
+}
 
-buildah run "$CONTAINER" -- sh -c "$COMMAND"
-IMAGE_ID=$(buildah commit "$CONTAINER" ${IMAGE_NAME})
+base() {
+	BASE_IMAGE=docker.io/httpd \
+		IMAGE_NAME=$BASE_IMAGE_NAME \
+		main_flow base_work
+}
 
-# echo "Pushing image '$IMAGE_ID'"
-# skopeo copy containers-storage:$IMAGE_NAME docker://$IMAGE_NAME
+texture_generator() {
+	BASE_IMAGE=containers-storage:$BASE_IMAGE_NAME \
+		IMAGE_NAME=$TEXTURE_GENERATOR_IMAGE_NAME \
+		main_flow texture_generator_work
+}
+
+final() {
+	BASE_IMAGE=containers-storage:$TEXTURE_GENERATOR_IMAGE_NAME \
+		IMAGE_NAME=$FINAL_IMAGE_NAME \
+		main_flow final_work
+}
+
+main_flow() {
+	CONTAINER=$(buildah from $BASE_IMAGE)
+	"${@}"
+	buildah commit "$CONTAINER" "$IMAGE_NAME:$IMAGE_TAG"
+}
+
+"${@}"
