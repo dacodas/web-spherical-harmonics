@@ -16,6 +16,10 @@ var textureProgram;
 var texture_vertex_buffer;
 var texture_element_buffer;
 
+var animationIndex = 0;
+var animationTextures;
+
+
 var surfaceProgram;
 var surface_vertex_buffer;
 var north_pole_vertex_buffer;
@@ -197,8 +201,17 @@ function surfaceVertexAttribute()
     gl.vertexAttribPointer(0, size, type, normalize, stride, offset)
 }
 
+function loadAnimationTexture(index) {  
+	var currentURL = '/spherical-harmonics/images/frame-' + String(index + 1).padStart(3, '0') + '.png';
+
+	return loadRhoTexture(gl, currentURL)
+}
+
 function render(time)
 {
+    animationIndex = ( animationIndex + 1 ) % 100;
+    rhoTexture = animationTextures[animationIndex]
+
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(.3, .3, .3, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -246,9 +259,10 @@ function render(time)
     var lightPositionUniformLocation = gl.getUniformLocation(surfaceProgram, "light_position")
     var viewPositionUniformLocation = gl.getUniformLocation(surfaceProgram, "view_position")
 
-    amplitude = pause ? amplitude : 1.0 * Math.cos( time * 0.004 )
-    // amplitude = 1.0
-    phi_offset = pause ? phi_offset : time * 0.0001
+    // amplitude = pause ? amplitude : 1.0 * Math.cos( time * 0.004 )
+    amplitude = 1.0
+    // phi_offset = pause ? phi_offset : time * 0.0001
+    phi_offset = 0.0
 
     gl.uniform1i(rhoSamplerVertexUniformLocation, 0)
     gl.uniform1i(rhoSamplerUniformLocation, 0)
@@ -287,4 +301,5 @@ var elementIndices = new Uint16Array([ %{ELEMENT_INDICES} ])
 var samplerPositions = new Float32Array([ %{SAMPLE_POSITIONS} ])
 
 initialize()
+animationTextures = [...Array(100).keys()].map(loadAnimationTexture)
 requestAnimationFrame(render)

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+convert xc:black -resize 100x100 build/precompile-animation/black.png
+convert xc:white xc:black -evaluate-sequence mean -resize 100x100 build/precompile-animation/gray.png
+convert build/precompile-animation/source.png -separate build/precompile-animation/channel-%d.png
+
+iterate_mean_with_gray() {
+	cp build/precompile-animation/channel-0.png build/precompile-animation/iteration-00.png
+
+	for i in $(seq 1 10)
+	do
+		read PREVIOUS CURRENT < <(printf "%02d " $(( i - 1 )) $i)
+
+		# convert \
+		# 	build/precompile-animation/gray.png \
+		#	build/precompile-animation/iterate-gray/iteration-$PREVIOUS.png \
+		#	-evaluate-sequence mean build/precompile-animation/iterate-gray/iteration-$CURRENT-gray.png
+
+		composite -blend 10 \
+			build/precompile-animation/gray.png \
+			build/precompile-animation/iterate-gray/iteration-$PREVIOUS.png \
+			build/precompile-animation/iterate-gray/iteration-gray-$CURRENT.png
+
+		composite -blend $(( 10 * ( 10 - i ) )) \
+			build/precompile-animation/channel-0.png \
+			build/precompile-animation/gray.png \
+			build/precompile-animation/iterate-gray/iteration-gray-$CURRENT.png
+
+		convert build/precompile-animation/iterate-gray/iteration-gray-$CURRENT.png \
+			build/precompile-animation/black.png \
+			build/precompile-animation/black.png \
+			-combine build/precompile-animation/iterate-gray/iteration-$CURRENT.png
+	done
+}
+
+cosine() {
+	PI=$(bc -l <<< "4 * a(1)")
+	FREQUENCY=2
+	DELTA=0.01
+
+	for i in $(seq 1 100)
+	do
+		printf "50 + 50 * c(%s)\n" "2 * $PI * $FREQUENCY * $i * $DELTA"
+	done | bc -l | nl | while read FRAME BLEND
+	do	
+		FRAME=$(printf "%03d" $FRAME)
+		composite -blend $BLEND \
+			build/precompile-animation/channel-0.png \
+			build/precompile-animation/gray.png \
+			build/precompile-animation/cosine/gray-frame-$FRAME.png
+
+		convert build/precompile-animation/cosine/gray-frame-$FRAME.png \
+			build/precompile-animation/black.png \
+			build/precompile-animation/black.png \
+			-combine build/precompile-animation/cosine/frame-$FRAME.png
+	done
+}
+
+"${@}"

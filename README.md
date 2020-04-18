@@ -22,11 +22,12 @@ I don't think we have to do any conversion, I think we can just do the rotation 
 
 ### Series of textures
 
-- [ ] Generate sequence of textures representing an animation
-- [ ] For each animation request
-  - [ ] Load the next textures from the animation
-  - [ ] Draw
+- [X] Generate sequence of textures representing an animation
+- [X] For each animation request
+  - [X] Load the next textures from the animation
+  - [X] Draw
 - [ ] Allow toggling between the original vibrate-back-and-forth and the series of textures
+- [ ] Also animate and load normals
 
 ### From video
 
