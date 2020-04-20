@@ -2,6 +2,10 @@
 #include <iomanip>
 #include <algorithm>
 #include <numeric>
+#include <vector>
+#include <array>
+
+#include <parallel/algorithm>
 
 #include <gsl/gsl_sf_legendre.h>
 #include "png.h"
@@ -13,7 +17,7 @@ uint16_t convert(double d, double max)
 
 uint16_t* toUint16(double* row, size_t size) 
 {
-	uint16_t* _row = (uint16_t*) malloc( size * size * sizeof(_row[0]) );
+	uint16_t* _row = (uint16_t*) malloc( size * sizeof(_row[0]) );
 
 	double max = std::transform_reduce(
 			row, row + size, 0.0d, 
@@ -165,43 +169,104 @@ void writePolynomials(LegendrePolynomials* polys) {
 
 int main(int argc, char* argv[])
 {
-	constexpr size_t image_size = 1000;
-	constexpr size_t max_l = 30;
+	constexpr size_t image_size = 250;
+	constexpr size_t max_l = 100;
 
 	Cosines cosines;
 	initializeCosines(&cosines, image_size, max_l);
-	writeCosines(&cosines);
+	// writeCosines(&cosines);
 
 	LegendrePolynomials polys;
 	initializePolynomials(&polys, &cosines, max_l, image_size);
-	writePolynomials(&polys);
+	// writePolynomials(&polys);
 
-	std::cout << polys.length ;
-
-//	for ( size_t harmonic = 0; harmonic < result_size; ++harmonic )
+//	double* phi_images = (double*) malloc(max_l * image_size * image_size * sizeof(phi_images[0]));
+//	double* poly_images = (double*) malloc(polys.number * image_size * image_size * sizeof(poly_images[0]));
+//
+//	for ( size_t i = 0; i < polys.number; ++i )
 //	{
-//		Eigen::Map<Eigen::Matrix<double, image_size, 1>> eigen_plm(p_l_m[harmonic]);
-//		double max = eigen_plm.lpNorm<Eigen::Infinity>();
-//
-//		double* image = (double*) malloc( image_size * image_size * sizeof(image[0]) );
-//		uint16_t* int_image = (uint16_t*) malloc( image_size * image_size * sizeof(int_image[0]) );
-//		for ( size_t i = 0; i < image_size; ++i )
-//		{
-//			double* row_start = image + image_size * i;
-//			memcpy(row_start, p_l_m[harmonic], image_size * sizeof(double));
-//			for ( size_t j = 0; j < image_size; ++j )
-//			{ 
-//				size_t index = i * image_size + j;
-//				int_image[index] = 65535 * ( 1.0 + image[index] / max ) / 2.0; 
-//			}
-//		}
-//
-//		std::cout << "Just to check, the max was " << max << "\n";
-//		std::stringstream ss {};
-//		ss << "build/harmonic-" << std::setw(3) << std::setfill('0') << harmonic << ".png";
-//
-//		write_png(ss.str(), int_image, image_size);
+//		std::cout << i << "\n";
+//		double* womp = fill_vertically(polys.plm + image_size * i, image_size);
+//		memcpy(poly_images + i * image_size * image_size, womp, image_size * image_size * sizeof(poly_images[0]));
+//		free(womp);
 //	}
+//
+//	for ( size_t m = 0; m < max_l; ++m )
+//	{
+//		std::cout << m << "\n";
+//		double* womp = fill_horizontally(cosines.cos_m_phi[m], image_size);
+//		memcpy(phi_images + m * image_size * image_size, womp, image_size * image_size * sizeof(phi_images[0]));
+//		free(womp);
+//	}
+//
+	std::vector<std::array<size_t, 3>> lms;
+
+	size_t harmonic = 0;
+	for ( size_t l = 0; l < max_l; ++l )
+	{
+		for ( size_t m = 0; m <= l; ++m )
+		{
+			lms.emplace_back(std::array<size_t, 3>({l, m, harmonic}));
+			++harmonic;
+
+		}
+	}
+
+	__gnu_parallel::for_each(
+			lms.begin(), lms.end(),
+			[&] (const std::array<size_t, 3>& lmh) {
+				size_t l = lmh[0];
+				size_t m = lmh[1];
+				size_t h = lmh[2];
+				double* new_image = (double*) malloc(image_size * image_size * sizeof(new_image[0]));
+				double* phi_image = fill_horizontally(cosines.cos_m_phi[m], image_size);
+				double* poly_image = fill_vertically(polys.plm + image_size * h, image_size);
+
+				__gnu_parallel::transform(
+						phi_image, phi_image + image_size * image_size,
+						poly_image,
+						new_image,
+						[] (double d1, double d2) -> double { return d1 * d2; });
+
+				uint16_t* new_image_int = toUint16(new_image, image_size * image_size);
+
+				std::stringstream filename; 
+				filename 
+				<< std::setfill('0')
+				<< "build/actual-harmonic-" 
+				<< std::setw(3) << l 
+				<< "-" 
+				<< std::setw(3) << m
+				<< ".png";
+				std::cout << "Writing " << filename.str() << "\n";
+				write_png(filename.str(), new_image_int, image_size);
+			}
+	);
+
+	//	for ( size_t harmonic = 0; harmonic < result_size; ++harmonic )
+	//	{
+	//		Eigen::Map<Eigen::Matrix<double, image_size, 1>> eigen_plm(p_l_m[harmonic]);
+	//		double max = eigen_plm.lpNorm<Eigen::Infinity>();
+	//
+	//		double* image = (double*) malloc( image_size * image_size * sizeof(image[0]) );
+	//		uint16_t* int_image = (uint16_t*) malloc( image_size * image_size * sizeof(int_image[0]) );
+	//		for ( size_t i = 0; i < image_size; ++i )
+	//		{
+	//			double* row_start = image + image_size * i;
+	//			memcpy(row_start, p_l_m[harmonic], image_size * sizeof(double));
+	//			for ( size_t j = 0; j < image_size; ++j )
+	//			{ 
+	//				size_t index = i * image_size + j;
+	//				int_image[index] = 65535 * ( 1.0 + image[index] / max ) / 2.0; 
+	//			}
+	//		}
+	//
+	//		std::cout << "Just to check, the max was " << max << "\n";
+	//		std::stringstream ss {};
+	//		ss << "build/harmonic-" << std::setw(3) << std::setfill('0') << harmonic << ".png";
+	//
+	//		write_png(ss.str(), int_image, image_size);
+	//	}
 
 	return 0;
 }
