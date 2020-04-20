@@ -52,23 +52,6 @@ void print_double_bin(std::ostream& out, double* d, size_t size)
 
 void print_double_array()
 {
-	// TODO: Ensure that doubles are IEEE 754 binary64 format
-	
-	double d[] {
-		54023.943208,
-		44564564.4464343575,
-		0.46842135452,
-		4654121.7756543
-	};
-
-	size_t size = sizeof(d) / sizeof(d[0]);
-	std::cout << "Array is of size " << size << "\n";
-
-	print_double_hex(std::cout, &d[0], size);
-
-	std::ofstream outputFile("womp");
-
-	print_double_bin(outputFile, &d[0], sizeof(d) / sizeof(d[0]));
 }
 
 int check_double(int argc, char* argv[])
@@ -103,7 +86,7 @@ std::unique_ptr<uint8_t> toHeap(uint8_t array[], size_t size) {
 	return std::unique_ptr<uint8_t> { _array };
 }
 
-std::unique_ptr<double> floatsFromFile(const std::string filename, size_t& size) {
+std::unique_ptr<double> doublesFromFile(const std::string filename, size_t& size) {
 	FILE* fp = fopen(filename.c_str(), "rb");
 
 	fseek( fp , 0L , SEEK_END);
@@ -120,13 +103,15 @@ std::unique_ptr<double> floatsFromFile(const std::string filename, size_t& size)
 	return uint8ArrayToDoubleArray(std::move(array));
 }
 
-int main(int argc, char* argv[])
+int serialize(int argc, char* argv[])
 {
-	print_double_array();
-	std::cout << "\n";
+	double d[] {
+		54023.943208,
+		44564564.4464343575,
+		0.46842135452,
+		4654121.7756543
+	};
 
-	check_double(argc, argv);
-	
 	uint8_t _array[] {
 		0x2a, 0x8b, 0xc2, 0x2e, 0xfe, 0x60, 0xea, 0x40, 0x2d, 0x4c, 
 		0x92, 0xa3, 0x02, 0x40, 0x85, 0x41, 0xbc, 0x54, 0x9a, 0x8f, 
@@ -134,23 +119,50 @@ int main(int argc, char* argv[])
 		0x51, 0x41
 	};
 
+	constexpr char filename[] {"build/double-array-serialization"};
+	size_t double_array_size = sizeof(d) / sizeof(d[0]);
 	std::unique_ptr<uint8_t> array = toHeap(_array, sizeof(_array));
 
-	std::cout << "From array\n";
+	// TODO: Ensure that doubles are IEEE 754 binary64 format
+	
+	std::cout << "Here is the original double array: \n";
+	for ( size_t i = 0; i < double_array_size; ++i )
+	{
+		std::cout << d[i] << "\n";
+	}
+	std::cout << "\n\n";
 
+	std::cout << "Here is the double array as octets: ";
+	print_double_hex(std::cout, &d[0], double_array_size);
+	std::cout << "\n\n";
+
+	std::cout << "Writing as binary to file " << filename << "\n";
+	{
+		std::ofstream outputFile(filename);
+		print_double_bin(outputFile, &d[0], double_array_size);
+	}
+
+	std::cout << "Reading from literal array\n";
 	std::unique_ptr<double> converted = uint8ArrayToDoubleArray(std::move(array));
 	for ( size_t i = 0; i < sizeof(_array) / 8; ++i )
 	{
 		std::cout << converted.get()[i] << "\n";
 	}
+	std::cout << "\n\n";
 
-	std::cout << "From file\n";
+	std::cout << "Reading from file " << filename << "\n";
 	size_t double_size;
-	std::unique_ptr<double> doubles = floatsFromFile("womp", double_size);
+	std::unique_ptr<double> doubles = doublesFromFile(filename, double_size);
 	for ( size_t i = 0; i < double_size; ++i )
 	{
 		std::cout << doubles.get()[i] << "\n";
 	}
+	std::cout << "\n\n";
 
-	return 0;
+	return 0; 
+}
+
+int main (int argc, char* argv[])
+{
+	serialize(argc, argv);
 }
