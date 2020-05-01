@@ -1,6 +1,6 @@
 #include "png.h"
 
-void png_setup(png_structp* png, png_infop* info, FILE* fp, size_t image_size)
+void png_setup(png_structp* png, png_infop* info, FILE* fp, size_t row_size, size_t row_number)
 {
 	*png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!*png) exit(1);
@@ -12,7 +12,7 @@ void png_setup(png_structp* png, png_infop* info, FILE* fp, size_t image_size)
 	png_set_IHDR(
 			*png, 
 			*info,
-			image_size, image_size,
+			row_size, row_number,
 			16,
 			PNG_COLOR_TYPE_GRAY,
 			PNG_INTERLACE_NONE,
@@ -37,23 +37,34 @@ void png_teardown(png_structp* png, png_infop* info)
 void write_png(
 	const std::string& filename, 
 	uint16_t* image,
-	size_t image_size)
+	size_t row_size, 
+	size_t row_number
+	)
 {
 	png_structp png;
 	png_infop info;
 	FILE* fp;
 
 	fp = fopen(filename.c_str(), "wb");
-	png_setup(&png, &info, fp, image_size);
+	png_setup(&png, &info, fp, row_size, row_number);
 
-	for ( size_t i = 0; i < image_size; ++i )
+	for ( size_t i = 0; i < row_number; ++i )
 	{
-		uint16_t* row_start = image + image_size * i;
+		uint16_t* row_start = image + row_size * i;
 		png_write_row(png, (png_const_bytep) row_start);
 	}
 
 	png_teardown(&png, &info);
 	fclose(fp);
+}
+
+void write_png(
+	const std::string& filename, 
+	uint16_t* image,
+	size_t image_size
+	)
+{
+	write_png(filename, image, image_size, image_size);
 }
 
 void write_png(
@@ -67,7 +78,7 @@ void write_png(
 	FILE* fp;
 
 	fp = fopen(filename.c_str(), "wb");
-	png_setup(&png, &info, fp, image_size);
+	png_setup(&png, &info, fp, image_size, image_size);
 
 	short unsigned int* data = image.data();
 	for ( size_t i = 0; i < image_size; ++i )

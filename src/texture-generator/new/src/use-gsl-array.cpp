@@ -4,51 +4,19 @@
 #include <numeric>
 #include <vector>
 #include <array>
+#include <fstream>
 
+#include <experimental/filesystem>
 #include <parallel/algorithm>
 
 #include <gsl/gsl_sf_legendre.h>
+
 #include "png.h"
+#include "serialization.h"
+#include "fill-and-convert.h"
 
-uint16_t convert(double d, double max)
-{
-	return 65535 * ( 1.0 + d / max ) / 2.0;
-}
-
-uint16_t* toUint16(double* row, size_t size) 
-{
-	uint16_t* _row = (uint16_t*) malloc( size * sizeof(_row[0]) );
-
-	double max = std::transform_reduce(
-			row, row + size, 0.0d, 
-			[] (double a, double b) -> double { return std::max(a, b); }, 
-			[] (double d) -> double { return std::abs(d); });
-
-	std::transform(
-			row, row + size, _row, 
-			[&max] (double d) -> uint16_t { return convert(d, max); }
-		      );
-
-	return _row;
-}
-
-template<typename T>
-T* fill_horizontally(T* vector, size_t size) {
-	T* image = (T*) malloc( size * size * sizeof(image[0]) );
-	for ( size_t i = 0; i < size; ++i )
-	{
-		T* dest = image + size * i;
-		memcpy(dest, vector, size * sizeof(T));
-	}
-	return image;
-}
-
-template<typename T>
-T* fill_vertically(T* vector, size_t size) {
-	T* transpose = fill_horizontally(vector, size);
-	Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> transpose_map(transpose, size, size);
-	transpose_map.transposeInPlace();
-	return transpose;
+namespace std {
+	namespace filesystem = experimental::filesystem;
 }
 
 typedef struct Cosines {
@@ -58,23 +26,114 @@ typedef struct Cosines {
 	size_t max_l;
 } Cosines;
 
+typedef struct LegendrePolynomials {
+	double* plm;
+	size_t length;
+	size_t number;
+	size_t max_l;
+} LegendrePolynomials;
+
+typedef struct Directories {
+	std::string png_directory;
+	std::string double_directory;
+} Directories;
+
+Directories determineDirectoryNames(const std::filesystem::path& relative_path) {
+	std::stringstream
+		png_output_folder_stream {},
+		double_output_folder_stream {};
+
+	std::string
+		png_output_folder,
+		double_output_folder;
+
+	png_output_folder_stream << "build/" << relative_path.c_str() << "/png";
+	double_output_folder_stream << "build/" << relative_path.c_str() << "/double";
+
+	png_output_folder = std::move(png_output_folder_stream.str());
+	double_output_folder = std::move(double_output_folder_stream.str());
+
+	return Directories {png_output_folder, double_output_folder};
+}
+
+namespace Write {
+	constexpr unsigned int CreateDirectories = 0x01;
+	constexpr unsigned int WriteDouble = 0x02;
+	constexpr unsigned int WritePNG = 0x04;
+	constexpr unsigned int FillPNGHorizontally = 0x08;
+	constexpr unsigned int FillPNGVertically = 0x10;
+
+	using Mode = unsigned int;
+}
+
+void write(const std::filesystem::path& relative_path,
+	const std::string& filename,
+	double* buffer,
+	size_t size,
+	Write::Mode mode)
+{
+	Directories directories {determineDirectoryNames(relative_path)};
+
+	if ( mode & Write::CreateDirectories )
+	{
+		std::filesystem::create_directories(directories.png_directory);
+		std::filesystem::create_directories(directories.double_directory);
+	}
+
+	if ( mode & Write::WriteDouble )
+	{
+		std::stringstream double_filename_stream {};
+		std::string double_filename {};
+		double_filename_stream << directories.double_directory.c_str() << "/" << filename << ".double";
+		double_filename = std::move(double_filename_stream.str());
+		std::ofstream double_output {double_filename};
+		serialize(double_output, buffer, size);
+	}
+
+	if ( mode & Write::WritePNG )
+	{
+		std::stringstream png_filename_stream {};
+		std::string png_filename {};
+		png_filename_stream << directories.png_directory.c_str() << "/" << filename << ".png";
+		png_filename = std::move(png_filename_stream.str());
+		uint16_t* uint16_image = toUint16(buffer, size);
+		uint16_t* new_image;
+		bool filled {false};
+
+		if ( mode & Write::FillPNGHorizontally )
+		{
+			filled = true;
+			new_image = fill_horizontally(uint16_image, size);
+		}
+		else if ( mode & Write::FillPNGVertically )
+		{
+			filled = true;
+			new_image= fill_vertically(uint16_image, size);
+		}
+		else
+		{
+			new_image = uint16_image;
+		}
+
+		write_png(png_filename, new_image, filled ? size : sqrt(size));
+	}
+}
+
 void writeCosines(Cosines* cosines) {
 	size_t size = cosines->row_size;
+	write("cos", "cos-theta", cosines->cos_theta, size, Write::CreateDirectories | Write::WritePNG | Write::WriteDouble | Write::FillPNGHorizontally);
 
-	uint16_t* cos_theta_uint16_t = toUint16(cosines->cos_theta, size);
-	uint16_t* cos_theta_image = fill_horizontally(cos_theta_uint16_t, size);
-	write_png("build/cos-theta.png", cos_theta_image, size);
+	write("cos/cos-m-phi", "", nullptr, 0, Write::CreateDirectories);
+	std::stringstream output_filename_stream;
 
 	for ( size_t m = 0; m < cosines->max_l; ++m )
 	{
-		uint16_t* cos_m_phi_uint16_t = toUint16(cosines->cos_m_phi[m], size);
-		uint16_t* cos_m_phi_image = fill_vertically(cos_m_phi_uint16_t, size);
-
-		std::stringstream cos_m_phi_output_filename {};
-		cos_m_phi_output_filename << "build/cos-m-phi-" << std::setw(3) << std::setfill('0') << m << ".png";
-		write_png(cos_m_phi_output_filename.str(), cos_m_phi_image, size);
-
 		std::cout << "Writing cosine " << m << "\n";
+
+		output_filename_stream = {};
+		output_filename_stream << std::setw(3) << std::setfill('0') << m;
+
+		write("cos/cos-m-phi", output_filename_stream.str(), cosines->cos_m_phi[m], size, Write::WritePNG | Write::WriteDouble | Write::FillPNGVertically);
 	}
 }
 
@@ -103,17 +162,10 @@ void initializeCosines(Cosines* cosines, size_t size, size_t max_l)
 	*cosines = {cos_theta, cos_m_phi, size, max_l};
 }
 
-typedef struct LegendrePolynomials {
-	double* plm;
-	size_t length;
-	size_t number;
-	size_t max_l;
-} LegendrePolynomials;
-
 void initializePolynomials(
-		LegendrePolynomials* polynomials, 
+		LegendrePolynomials* polynomials,
 		Cosines* cosines,
-		size_t max_l, 
+		size_t max_l,
 		size_t row_length
 		)
 {
@@ -154,31 +206,29 @@ void initializePolynomials(
 void writePolynomials(LegendrePolynomials* polys) {
 	size_t size = polys->length;
 
-	for ( size_t harmonic = 0; harmonic < polys->number; ++harmonic )
+	write("polynomials", "", nullptr, 0, Write::CreateDirectories);
+	for ( size_t polynomial = 0; polynomial < polys->number; ++polynomial )
 	{
-		uint16_t* int_vector = toUint16(polys->plm + size * harmonic, size);
-		uint16_t* int_image = fill_vertically(int_vector, size);
+		std::cout << "Writing polynomial " << polynomial << "\n";
 
 		std::stringstream filename{};
-		filename << "build/harmonic-" << std::setw(3) << std::setfill('0') << harmonic << ".png";
-		write_png(filename.str(), int_image, size);
-
-		std::cout << "Writing polynomial " << harmonic << "\n";
+		filename << "polynomial-" << std::setw(3) << std::setfill('0') << polynomial;
+		write("polynomials", filename.str(), polys->plm + size * polynomial, size, Write::WritePNG | Write::WriteDouble | Write::FillPNGVertically);
 	}
 }
 
 int main(int argc, char* argv[])
 {
-	constexpr size_t image_size = 250;
-	constexpr size_t max_l = 100;
+	constexpr size_t image_size = 100;
+	constexpr size_t max_l = 30;
 
 	Cosines cosines;
 	initializeCosines(&cosines, image_size, max_l);
-	// writeCosines(&cosines);
+	writeCosines(&cosines);
 
 	LegendrePolynomials polys;
 	initializePolynomials(&polys, &cosines, max_l, image_size);
-	// writePolynomials(&polys);
+	writePolynomials(&polys);
 
 	std::vector<std::array<size_t, 3>> lms;
 
@@ -189,10 +239,10 @@ int main(int argc, char* argv[])
 		{
 			lms.emplace_back(std::array<size_t, 3>({l, m, harmonic}));
 			++harmonic;
-
 		}
 	}
 
+	write("harmonics", "", nullptr, 0, Write::CreateDirectories);
 	__gnu_parallel::for_each(
 			lms.begin(), lms.end(),
 			[&] (const std::array<size_t, 3>& lmh) {
@@ -209,46 +259,19 @@ int main(int argc, char* argv[])
 						new_image,
 						[] (double d1, double d2) -> double { return d1 * d2; });
 
-				uint16_t* new_image_int = toUint16(new_image, image_size * image_size);
+				std::cout << "Writing harmonics for (l, m) => (" << l << ", " << m << ")\n";
 
-				std::stringstream filename; 
-				filename 
-				<< std::setfill('0')
-				<< "build/actual-harmonic-" 
-				<< std::setw(3) << l 
-				<< "-" 
-				<< std::setw(3) << m
-				<< ".png";
-				std::cout << "Writing " << filename.str() << "\n";
-				write_png(filename.str(), new_image_int, image_size);
+				std::stringstream filename;
+				filename
+					<< std::setfill('0')
+					<< "harmonic-"
+					<< std::setw(3) << l
+					<< "-"
+					<< std::setw(3) << m;
+
+				write("harmonics", filename.str(), new_image, image_size * image_size, Write::WritePNG | Write::WriteDouble);
 			}
 	);
 
 	return 0;
 }
-
-// Archive, check for later
-//	for ( size_t harmonic = 0; harmonic < result_size; ++harmonic )
-//	{
-//		Eigen::Map<Eigen::Matrix<double, image_size, 1>> eigen_plm(p_l_m[harmonic]);
-//		double max = eigen_plm.lpNorm<Eigen::Infinity>();
-//
-//		double* image = (double*) malloc( image_size * image_size * sizeof(image[0]) );
-//		uint16_t* int_image = (uint16_t*) malloc( image_size * image_size * sizeof(int_image[0]) );
-//		for ( size_t i = 0; i < image_size; ++i )
-//		{
-//			double* row_start = image + image_size * i;
-//			memcpy(row_start, p_l_m[harmonic], image_size * sizeof(double));
-//			for ( size_t j = 0; j < image_size; ++j )
-//			{ 
-//				size_t index = i * image_size + j;
-//				int_image[index] = 65535 * ( 1.0 + image[index] / max ) / 2.0; 
-//			}
-//		}
-//
-//		std::cout << "Just to check, the max was " << max << "\n";
-//		std::stringstream ss {};
-//		ss << "build/harmonic-" << std::setw(3) << std::setfill('0') << harmonic << ".png";
-//
-//		write_png(ss.str(), int_image, image_size);
-//	}

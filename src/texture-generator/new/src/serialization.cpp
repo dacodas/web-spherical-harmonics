@@ -4,16 +4,6 @@
 #include <cstring>
 #include <fstream>
 
-void serialize(std::ostream& out, double* d, size_t size)
-{
-
-}
-
-std::vector<double> deserialize(std::istream& in)
-{
-	return {};
-}
-
 void print_double_hex(std::ostream& out, double* d, size_t size) 
 {
         // number_of_octets correctly calculated because I am on a 
@@ -48,6 +38,16 @@ void print_double_bin(std::ostream& out, double* d, size_t size)
 	{
 		out << reinterpret_cast<uint8_t*>(d)[i];
 	}
+}
+
+void serialize(std::ostream& out, double* d, size_t size)
+{
+	print_double_bin(out, d, size);
+}
+
+std::vector<double> deserialize(std::istream& in)
+{
+	return {};
 }
 
 void print_double_array()
@@ -86,7 +86,7 @@ std::unique_ptr<uint8_t> toHeap(uint8_t array[], size_t size) {
 	return std::unique_ptr<uint8_t> { _array };
 }
 
-std::unique_ptr<double> doublesFromFile(const std::string filename, size_t& size) {
+std::unique_ptr<double> deserializeFromFile(const std::string& filename, size_t& size) {
 	FILE* fp = fopen(filename.c_str(), "rb");
 
 	fseek( fp , 0L , SEEK_END);
@@ -152,7 +152,7 @@ int serialize(int argc, char* argv[])
 
 	std::cout << "Reading from file " << filename << "\n";
 	size_t double_size;
-	std::unique_ptr<double> doubles = doublesFromFile(filename, double_size);
+	std::unique_ptr<double> doubles = deserializeFromFile(filename, double_size);
 	for ( size_t i = 0; i < double_size; ++i )
 	{
 		std::cout << doubles.get()[i] << "\n";
@@ -162,7 +162,7 @@ int serialize(int argc, char* argv[])
 	return 0; 
 }
 
-int main (int argc, char* argv[])
-{
-	serialize(argc, argv);
-}
+// int main (int argc, char* argv[])
+// {
+// 	serialize(argc, argv);
+// }
