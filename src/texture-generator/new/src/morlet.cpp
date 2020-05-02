@@ -6,6 +6,7 @@
 #include <parallel/algorithm>
 #include <gsl/gsl_randist.h>
 
+#include "write.h"
 #include "serialization.h"
 #include "fill-and-convert.h"
 #include "png.h"
@@ -136,15 +137,15 @@ int main()
 
 	std::unique_ptr<double> expanded = expand(wavelet.get(), size);
 	std::unique_ptr<double> expanded_matrix {fill_horizontally(expanded.get(), 3 * size, size)};
-	std::unique_ptr<uint16_t> expanded_int {toUint16(expanded_matrix.get(), 3 * size * size)};
-	write_png("wavelet-expanded.png", expanded_int.get(), 3 * size, size);
+	write("wavelet", "", nullptr, 0, 0, Write::CreateDirectories);
+
+	write("wavelet", "expanded.png", expanded_matrix.get(), 3 * size, size, Write::WritePNG | Write::WriteDouble);
 
 	std::unique_ptr<double> wavelet_matrix {fill_horizontally(wavelet.get(), size, size)};
-	std::unique_ptr<uint16_t> wavelet_int {toUint16(wavelet_matrix.get(), size * size)};
-	write_png("wavelet.png", wavelet_int.get(), size, size);
+	write("wavelet", "wavelet.png", wavelet_matrix.get(), size, size, Write::WritePNG | Write::WriteDouble);
 
 	size_t harmonic_size;
-	std::unique_ptr<double> harmonic = deserializeFromFile("build/actual-harmonic-005-005.double", harmonic_size);
+	std::unique_ptr<double> harmonic = deserializeFromFile("build/harmonics/double/harmonic-005-005.double", harmonic_size);
 	transpose(harmonic.get(), size);
 
 	std::unique_ptr<double> combination_image {(double*) malloc(size * size * sizeof(double))};

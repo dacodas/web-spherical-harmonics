@@ -6,18 +6,12 @@
 #include <array>
 #include <fstream>
 
-#include <experimental/filesystem>
 #include <parallel/algorithm>
 
 #include <gsl/gsl_sf_legendre.h>
 
-#include "png.h"
-#include "serialization.h"
+#include "write.h"
 #include "fill-and-convert.h"
-
-namespace std {
-	namespace filesystem = experimental::filesystem;
-}
 
 typedef struct Cosines {
 	double* cos_theta;
@@ -33,97 +27,13 @@ typedef struct LegendrePolynomials {
 	size_t max_l;
 } LegendrePolynomials;
 
-typedef struct Directories {
-	std::string png_directory;
-	std::string double_directory;
-} Directories;
-
-Directories determineDirectoryNames(const std::filesystem::path& relative_path) {
-	std::stringstream
-		png_output_folder_stream {},
-		double_output_folder_stream {};
-
-	std::string
-		png_output_folder,
-		double_output_folder;
-
-	png_output_folder_stream << "build/" << relative_path.c_str() << "/png";
-	double_output_folder_stream << "build/" << relative_path.c_str() << "/double";
-
-	png_output_folder = std::move(png_output_folder_stream.str());
-	double_output_folder = std::move(double_output_folder_stream.str());
-
-	return Directories {png_output_folder, double_output_folder};
-}
-
-namespace Write {
-	constexpr unsigned int CreateDirectories = 0x01;
-	constexpr unsigned int WriteDouble = 0x02;
-	constexpr unsigned int WritePNG = 0x04;
-	constexpr unsigned int FillPNGHorizontally = 0x08;
-	constexpr unsigned int FillPNGVertically = 0x10;
-
-	using Mode = unsigned int;
-}
-
-void write(const std::filesystem::path& relative_path,
-	const std::string& filename,
-	double* buffer,
-	size_t size,
-	Write::Mode mode)
-{
-	Directories directories {determineDirectoryNames(relative_path)};
-
-	if ( mode & Write::CreateDirectories )
-	{
-		std::filesystem::create_directories(directories.png_directory);
-		std::filesystem::create_directories(directories.double_directory);
-	}
-
-	if ( mode & Write::WriteDouble )
-	{
-		std::stringstream double_filename_stream {};
-		std::string double_filename {};
-		double_filename_stream << directories.double_directory.c_str() << "/" << filename << ".double";
-		double_filename = std::move(double_filename_stream.str());
-		std::ofstream double_output {double_filename};
-		serialize(double_output, buffer, size);
-	}
-
-	if ( mode & Write::WritePNG )
-	{
-		std::stringstream png_filename_stream {};
-		std::string png_filename {};
-		png_filename_stream << directories.png_directory.c_str() << "/" << filename << ".png";
-		png_filename = std::move(png_filename_stream.str());
-		uint16_t* uint16_image = toUint16(buffer, size);
-		uint16_t* new_image;
-		bool filled {false};
-
-		if ( mode & Write::FillPNGHorizontally )
-		{
-			filled = true;
-			new_image = fill_horizontally(uint16_image, size);
-		}
-		else if ( mode & Write::FillPNGVertically )
-		{
-			filled = true;
-			new_image= fill_vertically(uint16_image, size);
-		}
-		else
-		{
-			new_image = uint16_image;
-		}
-
-		write_png(png_filename, new_image, filled ? size : sqrt(size));
-	}
-}
-
 void writeCosines(Cosines* cosines) {
 	size_t size = cosines->row_size;
-	write("cos", "cos-theta", cosines->cos_theta, size, Write::CreateDirectories | Write::WritePNG | Write::WriteDouble | Write::FillPNGHorizontally);
 
-	write("cos/cos-m-phi", "", nullptr, 0, Write::CreateDirectories);
+	std::unique_ptr<double> cos_theta_image {fill_horizontally(cosines->cos_theta, size)};
+	write("cos", "cos-theta", cos_theta_image.get(), size, size, Write::CreateDirectories | Write::WritePNG | Write::WriteDouble );
+
+	write("cos/cos-m-phi", "", nullptr, 0, 0, Write::CreateDirectories);
 	std::stringstream output_filename_stream;
 
 	for ( size_t m = 0; m < cosines->max_l; ++m )
@@ -133,7 +43,11 @@ void writeCosines(Cosines* cosines) {
 		output_filename_stream = {};
 		output_filename_stream << std::setw(3) << std::setfill('0') << m;
 
-		write("cos/cos-m-phi", output_filename_stream.str(), cosines->cos_m_phi[m], size, Write::WritePNG | Write::WriteDouble | Write::FillPNGVertically);
+		// This just comes and then gets immediately unallocated. 
+		// Should allow for fill_{horizontally,vertically} to write to 
+		// an already allocated region
+		std::unique_ptr<double> cos_m_phi_image {fill_vertically(cosines->cos_m_phi[m], size)};
+		write("cos/cos-m-phi", output_filename_stream.str(), cos_m_phi_image.get(), size, size, Write::WritePNG | Write::WriteDouble);
 	}
 }
 
@@ -206,14 +120,15 @@ void initializePolynomials(
 void writePolynomials(LegendrePolynomials* polys) {
 	size_t size = polys->length;
 
-	write("polynomials", "", nullptr, 0, Write::CreateDirectories);
+	write("polynomials", "", nullptr, 0, 0, Write::CreateDirectories);
 	for ( size_t polynomial = 0; polynomial < polys->number; ++polynomial )
 	{
 		std::cout << "Writing polynomial " << polynomial << "\n";
 
 		std::stringstream filename{};
 		filename << "polynomial-" << std::setw(3) << std::setfill('0') << polynomial;
-		write("polynomials", filename.str(), polys->plm + size * polynomial, size, Write::WritePNG | Write::WriteDouble | Write::FillPNGVertically);
+		std::unique_ptr<double> buffer {fill_vertically(polys->plm + size * polynomial, size)};
+		write("polynomials", filename.str(), buffer.get(), size, size, Write::WritePNG | Write::WriteDouble );
 	}
 }
 
@@ -242,7 +157,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	write("harmonics", "", nullptr, 0, Write::CreateDirectories);
+	write("harmonics", "", nullptr, 0, 0, Write::CreateDirectories);
 	__gnu_parallel::for_each(
 			lms.begin(), lms.end(),
 			[&] (const std::array<size_t, 3>& lmh) {
@@ -269,7 +184,7 @@ int main(int argc, char* argv[])
 					<< "-"
 					<< std::setw(3) << m;
 
-				write("harmonics", filename.str(), new_image, image_size * image_size, Write::WritePNG | Write::WriteDouble);
+				write("harmonics", filename.str(), new_image, image_size, image_size, Write::WritePNG | Write::WriteDouble);
 			}
 	);
 
