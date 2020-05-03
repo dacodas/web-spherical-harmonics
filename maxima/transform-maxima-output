@@ -1,0 +1,56 @@
+#!/bin/bash
+
+transform_maxima_latex() {
+	sed 's/\$\$/\$/g' \
+		| sed 's/vartheta/theta/g'
+}
+
+build_pdf() {
+	# should start with build/
+	INPUT_FILE_PATH_FROM_MAXIMA_ROOT=$1
+
+	PROPER_INPUT_FILE=../../${INPUT_FILE_PATH_FROM_MAXIMA_ROOT##build/}
+
+	cd build/pdflatex/work
+	pdflatex $PROPER_INPUT_FILE
+	mv $(basename $PROPER_INPUT_FILE).pdf ../output
+}
+
+generate_pdf() {
+	while read MAXIMA_LATEX_PATH
+	do
+		MAXIMA_LATEX_FILENAME=$(basename $MAXIMA_LATEX_PATH)
+		MAXIMA_LATEX_TEMPLATED=build/latex-source/$MAXIMA_LATEX_FILENAME
+
+		IFS= read -rd '' MAXIMA < $MAXIMA_LATEX_PATH
+		MAXIMA=$( transform_maxima_latex <<< "$MAXIMA" )
+		export MAXIMA
+
+		envsubst < maxima.tex.template > $MAXIMA_LATEX_TEMPLATED
+		( build_pdf $MAXIMA_LATEX_TEMPLATED )
+	done <<< $(find build/latex -type f)
+}
+
+generate_c() {
+	while read FILEPATH
+	do
+		FILENAME=$(basename $FILEPATH)
+		read VARIABLE_NAME <<< $( tr '[:lower:]' '[:upper:]' <<< ${FILENAME//-/_} )
+
+		IFS= read -rd '' MAXIMA_C_${VARIABLE_NAME} \
+			<<< $( perl -pe 's/\\\n//sg' < $FILEPATH )
+		export MAXIMA_C_${VARIABLE_NAME}
+
+	done <<< $(find build/c -type f)
+
+	envsubst < rotation.h.template > build/rotation.h
+}
+
+mkdir -p build/{latex,c,latex-source,pdflatex/work,pdflatex/output}
+maxima --batch=rotation.maxima
+
+generate_pdf
+generate_c
+cp maxima.cpp build
+g++ build/maxima.cpp -o build/maxima
+./build/maxima

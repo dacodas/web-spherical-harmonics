@@ -1,0 +1,9 @@
+\documentclass{standalone}
+
+\usepackage{amsmath}
+
+\begin{document}
+
+$MAXIMA
+
+\end{document}

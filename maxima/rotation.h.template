@@ -1,0 +1,24 @@
+#include <cmath>
+
+double rotatedPhi(
+		double theta,
+		double phi,
+		double Theta,
+		double Phi,
+		double beta
+		) 
+{
+	return $MAXIMA_C_PHI;
+}
+
+double rotatedTheta(
+		double theta,
+		double phi,
+		double Theta,
+		double Phi,
+		double beta
+		)
+{
+	return $MAXIMA_C_THETA;
+}
+
