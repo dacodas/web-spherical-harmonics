@@ -28,4 +28,12 @@ void write(const std::filesystem::path& relative_path,
 	size_t column_size,
 	Write::Mode mode);
 
+void write(const std::filesystem::path& relative_path,
+	const std::string& filename,
+	double* buffer,
+	size_t row_size,
+	size_t column_size,
+	double max,
+	Write::Mode mode);
+
 Directories determineDirectoryNames(const std::filesystem::path& relative_path);

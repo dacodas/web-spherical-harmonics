@@ -29,6 +29,7 @@ void write(const std::filesystem::path& relative_path,
 	double* buffer,
 	size_t row_size,
 	size_t column_size,
+	double max,
 	Write::Mode mode)
 {
 	Directories directories {determineDirectoryNames(relative_path)};
@@ -55,8 +56,27 @@ void write(const std::filesystem::path& relative_path,
 		std::string png_filename {};
 		png_filename_stream << directories.png_directory.c_str() << "/" << filename << ".png";
 		png_filename = std::move(png_filename_stream.str());
-		uint16_t* uint16_image = toUint16(buffer, row_size * column_size);
+
+		uint16_t* uint16_image;
+		if ( max == 0.0d )
+		{
+			uint16_image = toUint16(buffer, row_size * column_size);
+		}
+		else 
+		{
+			uint16_image = toUint16(buffer, row_size * column_size, max);
+		}
 
 		write_png(png_filename, uint16_image, row_size, column_size);
 	}
+}
+
+void write(const std::filesystem::path& relative_path,
+	const std::string& filename,
+	double* buffer,
+	size_t row_size,
+	size_t column_size,
+	Write::Mode mode)
+{
+	write(relative_path, filename, buffer, row_size, column_size, 0.0d, mode);
 }
