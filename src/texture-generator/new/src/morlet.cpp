@@ -87,15 +87,15 @@ std::unique_ptr<double> expand(double* vector, size_t size)
 	return std::unique_ptr<double> {expanded};
 }
 
-int main() 
+std::unique_ptr<double> generateWavelet(size_t size)
 {
-	constexpr size_t size = 100;
 	constexpr double gaussian_boundary = 5.0d;
-	constexpr double gaussian_increment = 2 * gaussian_boundary / ( size - 1 );
 	constexpr double gaussian_sigma = 0.5d;
 	constexpr double cos_boundary = M_PI_2;
-	constexpr double cos_increment = 2 * cos_boundary / ( size - 1 );
-	constexpr double cos_frequency = 40;
+	constexpr double cos_frequency = 20;
+
+	double cos_increment = 2 * cos_boundary / ( size - 1 );
+	double gaussian_increment = 2 * gaussian_boundary / ( size - 1 );
 
 	// std::vector<double> gaussian(size);
 	// std::vector<double> cosine(size);
@@ -120,17 +120,7 @@ int main()
 			return result;
 			});
 
-	// double* gaussian_image = fill_horizontally(gaussian, size);
-	// double* cosine_image = fill_vertically(cosine, size);
-	// double* cosine_image = fill_horizontally(cosine, size);
-	// __gnu_parallel::transform(
-	// 		gaussian_image, gaussian_image + size * size,
-	// 		cosine_image,
-	// 		new_image,
-	// 		[] (double d1, double d2) -> double { return d1 * d2; });
-
 	std::unique_ptr<double> wavelet {(double*) malloc(size * sizeof(double))};
-	std::unique_ptr<double> wavelet_image {(double*) malloc(size * size * sizeof(double))};
 
 	__gnu_parallel::transform(
 			gaussian, gaussian + size,
@@ -138,20 +128,34 @@ int main()
 			wavelet.get(),
 			[] (double d1, double d2) -> double { return d1 * d2; });
 
-	std::unique_ptr<double> expanded = expand(wavelet.get(), size);
-	std::unique_ptr<double> expanded_matrix {fill_horizontally(expanded.get(), 3 * size, size)};
+	free(gaussian);
+	free(cosine);
+	
+	return wavelet;
+}
+
+void convolveWaveletAnimation(size_t size)
+{
 	write("wavelet", "", nullptr, 0, 0, Write::CreateDirectories);
 
-	write("wavelet", "expanded", expanded_matrix.get(), 3 * size, size, Write::WritePNG | Write::WriteDouble);
+	std::unique_ptr<double> wavelet = generateWavelet(size);
+	std::unique_ptr<double> wavelet_image {fill_horizontally(wavelet.get(), size, size)};
+	write("wavelet", "wavelet", wavelet_image.get(), size, size, Write::WritePNG | Write::WriteDouble);
 
-	std::unique_ptr<double> wavelet_matrix {fill_horizontally(wavelet.get(), size, size)};
-	write("wavelet", "wavelet", wavelet_matrix.get(), size, size, Write::WritePNG | Write::WriteDouble);
+	std::unique_ptr<double> expanded_wavelet = expand(wavelet.get(), size);
+	std::unique_ptr<double> expanded_wavelet_image {fill_horizontally(expanded_wavelet.get(), 3 * size, size)};
+	write("wavelet", "expanded_wavelet", expanded_wavelet_image.get(), 3 * size, size, Write::WritePNG | Write::WriteDouble);
 
 	size_t harmonic_size;
-	std::unique_ptr<double> harmonic = deserializeFromFile("build/harmonics/double/harmonic-005-005.double", harmonic_size);
-	transpose(harmonic.get(), size);
+	std::unique_ptr<double> harmonic;
+	{
+		harmonic = deserializeFromFile("build/harmonics/double/harmonic-005-002.double", harmonic_size);
+		transpose(harmonic.get(), size);
+	}
 
-	double max = max_abs(harmonic.get(), harmonic_size);
+	double sigma = 1.0d;
+	double gaussian_max = gsl_ran_gaussian_pdf(0.0d, sigma);
+	double max = max_abs(harmonic.get(), harmonic_size) * gaussian_max;
 	for ( size_t offset = 0 ; offset <= 200 ; ++offset )
 	{
 		std::stringstream filename {};
@@ -159,22 +163,31 @@ int main()
 
 		std::cout << "Writing " << offset << "\n";
 
-		StrideIterator<double> strided(expanded_matrix.get() + offset, size, 3 * size);
+		double x = ( static_cast<double>( offset ) - 100 ) / 20.0d;
+		double scale = gsl_ran_gaussian_pdf(x, 1);
+
+		StrideIterator<double> strided(expanded_wavelet_image.get() + offset, size, 3 * size);
 		std::unique_ptr<double> combination_image {(double*) malloc(size * size * sizeof(double))};
 		__gnu_parallel::transform(
 				harmonic.get(), harmonic.get() + size * size,
 				strided,
 				combination_image.get(),
-				[] (double d1, double d2) -> double { return d1 * d2; });
+				[&scale] (double d1, double d2) -> double { return scale * d1 * d2; });
 		write("wavelet", filename.str(), combination_image.get(), size, size, max, Write::WritePNG | Write::WriteDouble);
 	}
+}
 
+int main() 
+{
 	// uint16_t* combination_image_int = toUint16(combination_image, size * size);
 	// write_png("combination.png", combination_image_int, size);
 	// {
 	// 	std::ofstream file {"combination.double"};
 	// 	serialize(file, combination_image, size * size);
 	// }
+	
+	constexpr size_t size = 100;
+	convolveWaveletAnimation(size);
 
 	return 0;
 }
