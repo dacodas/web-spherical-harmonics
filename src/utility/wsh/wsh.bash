@@ -21,7 +21,7 @@ template() {
 	done
 }
 
-srv() {
+template_srv() {
 	set -a
 	read ELEMENT_INDICES_LENGTH < <( wc -l < build/icosahedron/indices )
 	read ELEMENT_INDICES_LENGTH < <( echo "3 * ${ELEMENT_INDICES_LENGTH}" | bc )
@@ -34,6 +34,15 @@ srv() {
 	rsync -av srv/ build/srv/
 
 	find build/ -name '*.template' | template
+}
+
+run() {
+	podman run \
+		--rm \
+		--name web-spherical-harmonics\
+		--detach \
+		--publish 7081:80 \
+		container-registry.dacodastrack.com/web-spherical-harmonics
 }
 
 "${@}"

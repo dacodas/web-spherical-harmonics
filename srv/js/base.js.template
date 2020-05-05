@@ -294,7 +294,8 @@ function render(time)
 
     // console.log(time)
 
-    requestAnimationFrame(render)
+    requestAnimationFrame(render);
+    // setTimeout( () => { requestAnimationFrame(render) }, 20 )
 }
 
 var elementIndices = new Uint16Array([ %{ELEMENT_INDICES} ])
