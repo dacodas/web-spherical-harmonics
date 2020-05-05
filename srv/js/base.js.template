@@ -7,7 +7,7 @@ var eye = {'rho': 2.5, 'theta': Math.PI / 2.0, 'phi': 0}
 
 var identity4 = glm.mat4(1, 0, 0, 0,
                          0, 1, 0, 0,
-                         0, 0, 1, 0, 
+                         0, 0, 1, 0,
                          0, 0, 0, 1)
 
 var rhoTexture;
@@ -135,7 +135,7 @@ function setupControls()
         }
         if ( key === 's' )
         {
-            if ( eye.theta < Math.PI - 0.1) 
+            if ( eye.theta < Math.PI - 0.1)
                 eye.theta += 0.1
         }
         if ( key === 'd' )
@@ -201,7 +201,7 @@ function surfaceVertexAttribute()
     gl.vertexAttribPointer(0, size, type, normalize, stride, offset)
 }
 
-function loadAnimationTexture(index) {  
+function loadAnimationTexture(index) {
 	var currentURL = '/spherical-harmonics/images/wavelet-' + String(index + 1).padStart(3, '0') + '.png';
 
 	return loadRhoTexture(gl, currentURL)
