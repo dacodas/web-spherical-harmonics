@@ -1,20 +1,12 @@
 /* https://math.stackexchange.com/questions/1019910/rotation-matrix-in-spherical-coordinates */
 
-a[x]:sin( theta ) * cos( phi );
-a[y]:sin( theta ) * sin( phi );
-a[z]:cos( theta );
-
-k[x]:sin( Theta ) * cos( Phi );
-k[y]:sin( Theta ) * sin( Phi );
-k[z]:cos( Theta );
-
 K:matrix([0, -k[z], k[y]], [k[z], 0, -k[x]], [-k[y], k[x], 0]);
 
 t1:ident(3);
 
 t2:sin(beta) * K;
 
-t3:( 1 - cos(beta) ) * K ^^ 2;
+t3:( 1 - cos(beta) ) * ( K ^^ 2 );
 
 R:t1 + t2 + t3;
 b:R . matrix([a[x]], [a[y]], [a[z]]);
@@ -23,10 +15,54 @@ bx:b[1,1];
 by:b[2,1];
 bz:b[3,1];
 
-phi[p]:atan( by / bx);
-theta[p]:atan( sqrt( bx ^ 2 + by ^ 2 ) / bz );
+theta[p]:atan2( sqrt( bx ^ 2 + by ^ 2 ) , bz );
+phi[p]:atan2(by , bx);
+
+
+_rotate( _k, beta ) :=
+	ev( [ theta[p], phi[p] ],
+		a[x] = sin( theta ) * cos( phi ),
+		a[y] = sin( theta ) * sin( phi ),
+		a[z] = cos( theta ),
+		k[x] = _k[1], k[y] = _k[2], k[z] = _k[3] );
+
+rotate( _a, _k, beta ) :=
+	ev( [ theta[p], phi[p] ],
+		theta = _a[1],
+		phi = _a[2],
+		a[x] = sin( theta ) * cos( phi ),
+		a[y] = sin( theta ) * sin( phi ),
+		a[z] = cos( theta ),
+		k[x] = _k[1], k[y] = _k[2], k[z] = _k[3] );
+
+string(
+float(
+subst(pow, "^",
+ev( [ theta[p], phi[p] ],
+	a[x] = sin( theta ) * cos( phi ),
+	a[y] = sin( theta ) * sin( phi ),
+	a[z] = cos( theta ),
+	k[x] = sin( Theta ) * cos( Phi ),
+	k[y] = sin( Theta ) * sin( Phi ),
+	k[z] = cos( Theta ) )
+)
+)
+)
+;
+
+/*
+plot2d( [ rotate1(theta), rotate2(theta) ] , [theta, 0, %pi]);
+
+a[x]:sin( theta ) * cos( phi );
+a[y]:sin( theta ) * sin( phi );
+a[z]:cos( theta );
+
+k[x]:sin( Theta ) * cos( Phi );
+k[y]:sin( Theta ) * sin( Phi );
+k[z]:cos( Theta );
 
 with_stdout("build/latex/phi", tex(phi[p]));
 with_stdout("build/latex/theta", tex(theta[p]));
 with_stdout("build/c/phi", print(string(subst(pow, "^", phi[p]))));
 with_stdout("build/c/theta", print(string(subst(pow, "^", theta[p]))));
+*/
