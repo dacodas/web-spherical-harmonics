@@ -29,7 +29,7 @@ float rho(vec2 samplerPosition)
     return rho;
 }
 
-vec3 calculateNormal(vec2 samplerPosition)
+vec3 calculateNormal(vec2 samplerPosition, float theta, float phi, float _rho)
 {
     const float delta = 0.01;
     const float delta_theta = M_PI * delta;
@@ -43,7 +43,15 @@ vec3 calculateNormal(vec2 samplerPosition)
     vec3 _normal = vec3( - delta_phi * delta_rho_theta , delta_theta * delta_rho_phi, delta_theta * delta_phi );
     vec3 normal = _normal / length(_normal);
 
-    return normal;
+    // We convert unit vectors here, not components
+    // http://www.physics.purdue.edu/~jones105/phys310/coordinates.pdf
+    vec3 normal_xyz = mat3(
+        _rho * cos(theta) * cos(phi),   _rho * cos(theta) * sin(phi),  _rho * sin(theta),
+        -_rho * sin(theta) * sin(phi),  _rho * sin(theta) * cos(phi),   0,
+        sin(theta) * cos(phi),         sin(theta) * sin(phi),         cos(theta)
+    ) * normal;
+
+    return normal_xyz;
 }
 
 void main()
@@ -65,7 +73,7 @@ void main()
     position = position4.xyz;
     position_tpr = vec3( theta, phi, rho );
     texture_coordinates = vertex_position.xy;
-    normal = calculateNormal(vertex_position);
+    normal = calculateNormal(vertex_position, theta, phi, rho);
 
     gl_Position = proj * view * position4;
 }

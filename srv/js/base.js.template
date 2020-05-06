@@ -188,15 +188,38 @@ function surfaceVertexAttribute()
 }
 
 function loadAnimationTexture(index) {
-	var currentURL = '/spherical-harmonics/images/wavelet-' + String(index + 1).padStart(3, '0') + '.png';
+	var currentURL = '/spherical-harmonics/images/animation/frame-' + String(index + 1).padStart(3, '0') + '.png';
 
 	return loadRhoTexture(gl, currentURL)
 }
 
+const Modes = {"Animation": 1, "Vibration": 2};
+Object.freeze(Modes);
+
+var mode = Modes.Animation;
+var defaultRhoTexture;
+var maxAmplitude = 0.5;
+
 function render(time)
 {
-    animationIndex = ( animationIndex + 1 ) % 200;
-    rhoTexture = animationTextures[animationIndex]
+    switch ( mode ) {
+        case Modes.Animation:
+        {
+            animationIndex = ( animationIndex + 1 ) % 200;
+            rhoTexture = animationTextures[animationIndex]
+            break;
+        }
+        case Modes.Vibration:
+        {
+            rhoTexture = defaultRhoTexture;
+            break;
+        }
+        default:
+        {
+            console.log("Unknown mode!");
+        }
+    }
+
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(.3, .3, .3, 1.0);
@@ -247,8 +270,15 @@ function render(time)
     var drawGridlinesUniformLocation = gl.getUniformLocation(surfaceProgram, "draw_gridlines")
     var normalColoringUniformLocation = gl.getUniformLocation(surfaceProgram, "normal_coloring")
 
-    // amplitude = pause ? amplitude : 1.0 * Math.cos( time * 0.004 )
-    amplitude = 1.0
+    if ( mode == Modes.Vibration ) 
+    {
+        amplitude = pause ? amplitude : maxAmplitude * Math.cos( time * 0.004 )
+    }
+    else
+    {
+        amplitude = 1.0
+    }
+
     // phi_offset = pause ? phi_offset : time * 0.0001
     phi_offset = 0.0
 
@@ -293,4 +323,5 @@ var samplerPositions = new Float32Array([ %{SAMPLE_POSITIONS} ])
 
 initialize()
 animationTextures = [...Array(200).keys()].map(loadAnimationTexture)
+defaultRhoTexture = loadRhoTexture(gl, "/spherical-harmonics/images/harmonics/png/harmonic-005-003.png");
 requestAnimationFrame(render)

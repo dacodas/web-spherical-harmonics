@@ -65,7 +65,7 @@ void main()
 		float diff = max(dot(normal, light_direction), 0.0);
 		vec3 diffuse = diff * lightColor;
 
-		float spec = pow(max(dot(view_direction, reflect_direction), 0.0), 64.0);
+		float spec = pow(max(dot(view_direction, reflect_direction), 0.0), 5.0);
 		vec3 specular = specularStrength * spec * lightColor;
 
 		color = ( ambient + diffuse + specular ) * objectColor;

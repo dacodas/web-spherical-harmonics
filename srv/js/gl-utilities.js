@@ -37,6 +37,7 @@ function createProgramFromScriptSource(gl, vertexShaderID, fragmentShaderID)
     var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
     var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
+    console.log("Creating program " + vertexShaderID);
     program = createProgram(gl, vertexShader, fragmentShader);
 
     return program 

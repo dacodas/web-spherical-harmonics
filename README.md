@@ -2,7 +2,9 @@
 
 # TODO
 
-## Figure out seam 
+## [TENTATIVELY DONE] Figure out seam 
+
+After calculating the normals on the fly, this problem appears to have gone away. 
 
 I think this is due to the normals, but I'm not sure. 
 
@@ -10,11 +12,12 @@ I think this is due to the normals, but I'm not sure.
 - [ ] Try shading without lighting
 - [ ] Further debugging...
 
-## Load shaders from path rather than in same document
+
+## [DONE] Load shaders from path rather than in same document
 
 Alternatively, compile into the page while building 
 
-## Toggle between precompiled animations and "vibration"
+## [DONE] Toggle between precompiled animations and "vibration"
 
 ## [DONE] Toggle gridlines
 
@@ -32,14 +35,14 @@ Rotating the texture in 2D doesn't make any sense, let's use the equations from 
 
 I don't think we have to do any conversion, I think we can just do the rotation with the vector components and be just fine. 
 
-### Series of textures
+### [DONE]  Series of textures
 
 - [X] Generate sequence of textures representing an animation
 - [X] For each animation request
   - [X] Load the next textures from the animation
   - [X] Draw
-- [ ] Allow toggling between the original vibrate-back-and-forth and the series of textures
-- [ ] Also animate and load normals
+- [X] Allow toggling between the original vibrate-back-and-forth and the series of textures
+- [X] Also animate and load normals
 
 ### From video
 
