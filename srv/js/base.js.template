@@ -26,13 +26,15 @@ var north_pole_vertex_buffer;
 var south_pole_vertex_buffer;
 var surface_element_buffer;
 
-var baseProgram;
 var positionBuffer;
 
 var amplitude = 0;
 var pause = false;
 
 var resolution = 100;
+
+var normalColoring = 0;
+var drawGridlines = 0;
 
 function eye_position()
 {
@@ -57,21 +59,6 @@ function initializeTextureBuffers()
     texture_element_buffer = gl.createBuffer()
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, texture_element_buffer)
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array([0, 1, 2, 3]), gl.STATIC_DRAW)
-}
-
-function initializeBaseBuffers()
-{
-    baseProgram = createProgramFromScriptSource(gl, "base-vertex-shader", "base-fragment-shader");
-
-    positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-    var positions = [
-        0, 0,
-        0, 0.5,
-        0.7, 0,
-    ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 }
 
 function initializeSurfaceBuffers()
@@ -111,7 +98,6 @@ function initialize()
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
     initializeTextureBuffers()
-    initializeBaseBuffers()
     initializeSurfaceBuffers()
     setupControls()
 }
@@ -226,7 +212,7 @@ function render(time)
     // let model_matrix = glm.rotate(time * 0.001, glm.vec3(0, 1, 0))
     let model_matrix = identity4
 
-    var mvp_programs = [baseProgram, surfaceProgram]
+    var mvp_programs = [surfaceProgram]
     mvp_programs.forEach(
         function (program, index)
         {
@@ -258,6 +244,8 @@ function render(time)
     var maxAmplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "max_amplitude")
     var lightPositionUniformLocation = gl.getUniformLocation(surfaceProgram, "light_position")
     var viewPositionUniformLocation = gl.getUniformLocation(surfaceProgram, "view_position")
+    var drawGridlinesUniformLocation = gl.getUniformLocation(surfaceProgram, "draw_gridlines")
+    var normalColoringUniformLocation = gl.getUniformLocation(surfaceProgram, "normal_coloring")
 
     // amplitude = pause ? amplitude : 1.0 * Math.cos( time * 0.004 )
     amplitude = 1.0
@@ -272,6 +260,8 @@ function render(time)
     gl.uniform1f(maxAmplitudeUniformLocation, 1.0)
     gl.uniform3fv(lightPositionUniformLocation, eye_position().elements)
     gl.uniform3fv(viewPositionUniformLocation, eye_position().elements)
+    gl.uniform1i(normalColoringUniformLocation, normalColoring);
+    gl.uniform1i(drawGridlinesUniformLocation, drawGridlines);
 
     gl.drawElements(gl.TRIANGLES, ${ELEMENT_INDICES_LENGTH}, gl.UNSIGNED_SHORT, 0)
 

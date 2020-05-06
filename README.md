@@ -10,11 +10,23 @@ I think this is due to the normals, but I'm not sure.
 - [ ] Try shading without lighting
 - [ ] Further debugging...
 
-## Precompile animations
+## Load shaders from path rather than in same document
+
+Alternatively, compile into the page while building 
+
+## Toggle between precompiled animations and "vibration"
+
+## [DONE] Toggle gridlines
+
+## [DONE] Toggle normals and regular
+
+## [DONE] Generate normals in shader
+
+## [DONE] Precompile animations
 
 I would like to be able to precompile animations as either a sequence of textures, or as a video. 
 
-### Rotate the texture about in arbitrary axis 
+### [DONE] Rotate the texture about in arbitrary axis 
 
 Rotating the texture in 2D doesn't make any sense, let's use the equations from [here](https://math.stackexchange.com/questions/1019910/rotation-matrix-in-spherical-coordinates) and [here](https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula#Matrix_notation). 
 

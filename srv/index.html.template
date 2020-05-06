@@ -1,0 +1,61 @@
+<html>
+    <head>
+        <title>Spherical harmonics</title>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <link rel="stylesheet" type="text/css" href="/spherical-harmonics/style/base.css">
+        <link rel="stylesheet" type="text/css" href="/spherical-harmonics/style/harmonic-adjuster.css">
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <canvas id="glCanvas" width="640" height="480"></canvas><br>
+
+        <div id="harmonic-adjusters">
+        </div>
+
+        <button id="refresh-texture">Refresh texture</button>
+        <button id="another-harmonic">Add another harmonic</button>
+
+        <p>
+            Use keyboard W, A, S, D, ⇧, ⇩ to move the camera
+        </p>
+        <p>
+            Try some of the following!
+        </p>
+        <ul>
+            <li>\(Y_5^0 + Y_{10}^{10}\)</li>
+            <li>\(Y_{2}^{2} + Y_{10}^{10}\)</li>
+            <li>\(Y_{3}^{0} + Y_{20}^{15}\)</li>
+        </ul>
+
+        <script id="texture-vertex-shader" type="notjs">
+%TEXTURE_VERTEX_SHADER
+        </script>
+
+        <script id="texture-fragment-shader" type="notjs">
+%TEXTURE_FRAGMENT_SHADER
+        </script>
+
+        <script id="surface-vertex-shader" type="notjs">
+%SURFACE_VERTEX_SHADER
+        </script>
+
+        <script id="surface-fragment-shader" type="notjs">
+%SURFACE_FRAGMENT_SHADER
+        </script>
+
+        <script id="base-vertex-shader" type="notjs">
+%BASE_VERTEX_SHADER
+        </script>
+
+        <script id="base-fragment-shader" type="notjs">
+%BASE_FRAGMENT_SHADER
+        </script>
+
+        <script src="http://humbletim.github.io/glm-js/code/build/glm-js.min.js"></script>
+        <script src="/spherical-harmonics/js/utilities.js"></script>
+        <script src="/spherical-harmonics/js/gl-utilities.js"></script>
+        <script src="/spherical-harmonics/js/base.js"></script>
+        <script src="/spherical-harmonics/js/controller.js"></script>
+    </body>
+</html>

@@ -29,6 +29,13 @@ template_srv() {
 	ELEMENT_INDICES=build/icosahedron/indices
 	SAMPLE_POSITIONS=build/icosahedron/vertices
 
+	TEXTURE_VERTEX_SHADER=src/shaders/texture/vertex.glsl
+	TEXTURE_FRAGMENT_SHADER=src/shaders/texture/fragment.glsl
+	SURFACE_VERTEX_SHADER=src/shaders/surface/vertex.glsl
+	SURFACE_FRAGMENT_SHADER=src/shaders/surface/fragment.glsl
+	BASE_VERTEX_SHADER=src/shaders/base/vertex.glsl
+	BASE_FRAGMENT_SHADER=src/shaders/base/fragment.glsl
+
 	set +a
 
 	rsync -av srv/ build/srv/
