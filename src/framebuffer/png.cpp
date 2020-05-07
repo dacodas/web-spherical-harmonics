@@ -1,13 +1,13 @@
 #include <png.h>
 #include <cstdint>
 
-void write_png(size_t row_size, size_t row_number, uint8_t* image)
+void write_png(size_t row_size, size_t row_number, uint8_t* image, const char* filename)
 {
 	FILE* fp;
 	png_structp png;
 	png_infop info;
 
-	fp = fopen("output.png", "wb");
+	fp = fopen(filename, "wb");
 
 	png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png) return;
@@ -17,7 +17,7 @@ void write_png(size_t row_size, size_t row_number, uint8_t* image)
 
 	png_init_io(png, fp);
 	png_set_IHDR(
-			png, 
+			png,
 			info,
 			row_size, row_number,
 			8,

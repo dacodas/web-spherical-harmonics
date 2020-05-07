@@ -12,6 +12,7 @@
 #include <learnopengl/filesystem.h>
 
 #include <iostream>
+#include <iomanip>
 
 #include "png.cpp"
 
@@ -22,8 +23,8 @@ void processInput(GLFWwindow *window);
 unsigned int loadTexture(const char *path);
 
 // settings
-const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_HEIGHT = 1080;
+const unsigned int SCR_WIDTH = 100;
+const unsigned int SCR_HEIGHT = 100;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -130,7 +131,7 @@ int main()
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
     float planeVertices[] = {
-        // positions          // texture Coords 
+        // positions          // texture Coords
          5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
         -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
         -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
@@ -185,7 +186,7 @@ int main()
 
     // load textures
     // -------------
-    unsigned int rhoTexture = loadTexture("/mnt/gentoo-home/dacoda/projects/web-spherical-harmonics/src/texture-generator/new/build/harmonics/png/harmonic-005-003.png");
+    unsigned int rhoTexture = loadTexture("/mnt/gentoo-home/dacoda/projects/web-spherical-harmonics/src/texture-generator/new/build/harmonics/png/harmonic-020-010.png");
     unsigned int cubeTexture = loadTexture(FileSystem::getPath("resources/textures/container.jpg").c_str());
     unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/metal.png").c_str());
 
@@ -230,7 +231,12 @@ int main()
     // render loop
     // -----------
     void * data;
-    while (!glfwWindowShouldClose(window))
+    // while (!glfwWindowShouldClose(window))
+    for (
+		    size_t i = 0 ;
+		    i < 200;
+		    ++i
+	)
     {
         // per-frame time logic
         // --------------------
@@ -245,7 +251,7 @@ int main()
 
         // render
         // ------
-        // bind to framebuffer and draw scene as we normally would to color texture 
+        // bind to framebuffer and draw scene as we normally would to color texture
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
@@ -281,7 +287,9 @@ int main()
 
 	{
 		rotateShader.use();
-		rotateShader.setFloat("beta", currentFrame);
+		rotateShader.setFloat("beta", i * 2.0d * M_PI / 200.0 );
+		rotateShader.setFloat("Theta", 0.0);
+		rotateShader.setFloat("Phi", 0.0);
 		glBindVertexArray(quadVAO);
 		glBindTexture(GL_TEXTURE_2D, rhoTexture);	// use the color attachment texture as the texture of the quad plane
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -305,9 +313,16 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-	data = malloc( SCR_WIDTH * SCR_HEIGHT * 3 * sizeof(uint8_t) );
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, data);
+	{
+		data = malloc( SCR_WIDTH * SCR_HEIGHT * 3 * sizeof(uint8_t) );
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+		std::stringstream filename {};
+		filename << "build/frames/frame-" << std::setw(3) << std::setfill('0') << i + 1 << ".png";
+		std::cout << "Writing " << filename.str() << "\n";
+		write_png(SCR_WIDTH, SCR_HEIGHT, (uint8_t*) data, filename.str().c_str());
+	}
     }
 
 
@@ -322,7 +337,6 @@ int main()
 
     glfwTerminate();
 
-    write_png(SCR_WIDTH, SCR_HEIGHT, (uint8_t*) data);
 
     return 0;
 }
@@ -348,7 +362,7 @@ void processInput(GLFWwindow *window)
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
+    // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
@@ -405,7 +419,7 @@ unsigned int loadTexture(char const * path)
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         stbi_image_free(data);
