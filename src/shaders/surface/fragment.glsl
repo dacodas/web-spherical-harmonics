@@ -46,8 +46,8 @@ void main()
 {
 	const vec3 lightColor = vec3(1, 1, 1);
 	const vec3 objectColor = vec3(0.4, 0, 0);
-	const float ambientStrength = 0.5;
-	const float specularStrength = 0.5;
+	const float ambientStrength = 0.8;
+	const float specularStrength = 0.2;
 	const vec3 ambient = ambientStrength * lightColor;
 
 	vec3 color;
