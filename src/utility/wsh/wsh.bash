@@ -13,11 +13,12 @@ template() {
 
 	while read TEMPLATE_FILE
 	do
-		envsubst \
-			<${TEMPLATE_FILE} \
-			>${TEMPLATE_FILE%.template}
+		podman unshare bash -c \
+			"envsubst \
+				<${TEMPLATE_FILE} \
+				>${TEMPLATE_FILE%.template}"
 
-		rm ${TEMPLATE_FILE}
+		podman unshare rm ${TEMPLATE_FILE}
 	done
 }
 
@@ -38,7 +39,7 @@ template_srv() {
 
 	set +a
 
-	rsync -av srv/ build/srv/
+	podman unshare rsync -av srv/ build/srv/
 
 	find build/ -name '*.template' | template
 }
@@ -49,6 +50,7 @@ run() {
 		--name web-spherical-harmonics\
 		--detach \
 		--publish 7081:80 \
+		--volume $(pwd)/build/srv/:/usr/local/apache2/htdocs/:z \
 		container-registry.dacodastrack.com/web-spherical-harmonics
 }
 
