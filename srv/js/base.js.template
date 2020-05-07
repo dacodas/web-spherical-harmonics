@@ -6,9 +6,9 @@ var normalsTextureURL = '/spherical-harmonics/images/rho-normals.png';
 var eye = {'rho': 2.5, 'theta': Math.PI / 2.0, 'phi': 0}
 
 var identity4 = glm.mat4(1, 0, 0, 0,
-                         0, 1, 0, 0,
-                         0, 0, 1, 0,
-                         0, 0, 0, 1)
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1)
 
 var rhoTexture;
 var normalsTexture;
@@ -36,155 +36,155 @@ var resolution = 100;
 var normalColoring = 0;
 var drawGridlines = 0;
 
-function eye_position()
+function eye_xyz()
 {
-    return glm.vec3(
-        eye.rho * Math.sin(eye.theta) * Math.cos(eye.phi),
-        eye.rho * Math.sin(eye.theta) * Math.sin(eye.phi),
-        eye.rho * Math.cos(eye.theta)
-    )
+	return glm.vec3(
+		eye.rho * Math.sin(eye.theta) * Math.cos(eye.phi),
+		eye.rho * Math.sin(eye.theta) * Math.sin(eye.phi),
+		eye.rho * Math.cos(eye.theta)
+	)
 }
 
 function initializeTextureBuffers()
 {
-    // rhoTexture = loadRhoTexture(gl, "test.pgm")
-    rhoTexture = loadRhoTexture(gl, rhoTextureURL)
-    normalsTexture = loadRhoTexture(gl, normalsTextureURL)
-    textureProgram = createProgramFromScriptSource(gl, "texture-vertex-shader", "texture-fragment-shader");
+	// rhoTexture = loadRhoTexture(gl, "test.pgm")
+	rhoTexture = loadRhoTexture(gl, rhoTextureURL)
+	normalsTexture = loadRhoTexture(gl, normalsTextureURL)
+	textureProgram = createProgramFromScriptSource(gl, "texture-vertex-shader", "texture-fragment-shader");
 
-    texture_vertex_buffer = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, texture_vertex_buffer)
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, 1, 1, 0, 1, 1]), gl.STATIC_DRAW)
+	texture_vertex_buffer = gl.createBuffer()
+	gl.bindBuffer(gl.ARRAY_BUFFER, texture_vertex_buffer)
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, 1, 1, 0, 1, 1]), gl.STATIC_DRAW)
 
-    texture_element_buffer = gl.createBuffer()
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, texture_element_buffer)
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array([0, 1, 2, 3]), gl.STATIC_DRAW)
+	texture_element_buffer = gl.createBuffer()
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, texture_element_buffer)
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array([0, 1, 2, 3]), gl.STATIC_DRAW)
 }
 
 function initializeSurfaceBuffers()
 {
-    surfaceProgram = createProgramFromScriptSource(gl, "surface-vertex-shader", "surface-fragment-shader");
+	surfaceProgram = createProgramFromScriptSource(gl, "surface-vertex-shader", "surface-fragment-shader");
 
-    surface_vertex_buffer = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, surface_vertex_buffer)
-    gl.bufferData(gl.ARRAY_BUFFER, samplerPositions, gl.STATIC_DRAW)
+	surface_vertex_buffer = gl.createBuffer()
+	gl.bindBuffer(gl.ARRAY_BUFFER, surface_vertex_buffer)
+	gl.bufferData(gl.ARRAY_BUFFER, samplerPositions, gl.STATIC_DRAW)
 
-    // north_pole_vertex_buffer = gl.createBuffer()
-    // gl.bindBuffer(gl.ARRAY_BUFFER, north_pole_vertex_buffer)
-    // gl.bufferData(gl.ARRAY_BUFFER, north_pole_sampler_positions, gl.STATIC_DRAW)
+	// north_pole_vertex_buffer = gl.createBuffer()
+	// gl.bindBuffer(gl.ARRAY_BUFFER, north_pole_vertex_buffer)
+	// gl.bufferData(gl.ARRAY_BUFFER, north_pole_sampler_positions, gl.STATIC_DRAW)
 
-    // south_pole_vertex_buffer = gl.createBuffer()
-    // gl.bindBuffer(gl.ARRAY_BUFFER, south_pole_vertex_buffer)
-    // gl.bufferData(gl.ARRAY_BUFFER, south_pole_sampler_positions, gl.STATIC_DRAW)
+	// south_pole_vertex_buffer = gl.createBuffer()
+	// gl.bindBuffer(gl.ARRAY_BUFFER, south_pole_vertex_buffer)
+	// gl.bufferData(gl.ARRAY_BUFFER, south_pole_sampler_positions, gl.STATIC_DRAW)
 
-    surface_element_buffer = gl.createBuffer()
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, surface_element_buffer)
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, elementIndices, gl.STATIC_DRAW)
+	surface_element_buffer = gl.createBuffer()
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, surface_element_buffer)
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, elementIndices, gl.STATIC_DRAW)
 }
 
 function initialize()
 {
-    const canvas = document.querySelector("#glCanvas");
-    // Initialize the GL context
-    gl = canvas.getContext("webgl2");
+	const canvas = document.querySelector("#glCanvas");
+	// Initialize the GL context
+	gl = canvas.getContext("webgl2");
 
-    // Only continue if WebGL is available and working
-    if (gl === null) {
-        alert("Unable to initialize WebGL. Your browser or machine may not support it.");
-    }
+	// Only continue if WebGL is available and working
+	if (gl === null) {
+		alert("Unable to initialize WebGL. Your browser or machine may not support it.");
+	}
 
-    gl.enable(gl.DEPTH_TEST)
-    gl.enable(gl.BLEND)
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	gl.enable(gl.DEPTH_TEST)
+	gl.enable(gl.BLEND)
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-    initializeTextureBuffers()
-    initializeSurfaceBuffers()
-    setupControls()
+	initializeTextureBuffers()
+	initializeSurfaceBuffers()
+	setupControls()
 }
 
 function setupControls()
 {
-    document.addEventListener('keydown', function (event) {
+	document.addEventListener('keydown', function (event) {
 
-        console.log(event.key + " " + event.keyCode)
+		console.log(event.key + " " + event.keyCode)
 
-        if (event.defaultPrevented) {
-            return;
-        }
+		if (event.defaultPrevented) {
+			return;
+		}
 
-        var key = event.key || event.keyCode;
+		var key = event.key || event.keyCode;
 
-        if ( key === 'w' )
-        {
-            if ( eye.theta > 0.1 )
-                eye.theta -= 0.1
-        }
-        if ( key === 's' )
-        {
-            if ( eye.theta < Math.PI - 0.1)
-                eye.theta += 0.1
-        }
-        if ( key === 'd' )
-        {
-            eye.phi += 0.1
-        }
-        if ( key === 'a' )
-        {
-            eye.phi -= 0.1
-        }
-        if ( key === 'e' )
-        {
-            rhoTexture = loadRhoTexture(gl, rhoTextureURL)
-        }
-        if ( key === 'ArrowUp' )
-        {
-            eye.rho -= 0.5
-        }
-        if ( key === 'ArrowDown' )
-        {
-            eye.rho += 0.5
-        }
-        if ( key === 'q' )
-        {
-            pause = !pause
-        }
+		if ( key === 'w' )
+		{
+			if ( eye.theta > 0.1 )
+				eye.theta -= 0.1
+		}
+		if ( key === 's' )
+		{
+			if ( eye.theta < Math.PI - 0.1)
+				eye.theta += 0.1
+		}
+		if ( key === 'd' )
+		{
+			eye.phi += 0.1
+		}
+		if ( key === 'a' )
+		{
+			eye.phi -= 0.1
+		}
+		if ( key === 'e' )
+		{
+			rhoTexture = loadRhoTexture(gl, rhoTextureURL)
+		}
+		if ( key === 'ArrowUp' )
+		{
+			eye.rho -= 0.5
+		}
+		if ( key === 'ArrowDown' )
+		{
+			eye.rho += 0.5
+		}
+		if ( key === 'q' )
+		{
+			pause = !pause
+		}
 
-        console.log(eye_position().elements)
-    });
+		console.log(eye_xyz().elements)
+	});
 }
 
 function textureVertexAttribute()
 {
-    gl.useProgram(textureProgram)
+	gl.useProgram(textureProgram)
 
-    gl.enableVertexAttribArray(0)
-    gl.bindBuffer(gl.ARRAY_BUFFER, texture_vertex_buffer);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, texture_element_buffer);
+	gl.enableVertexAttribArray(0)
+	gl.bindBuffer(gl.ARRAY_BUFFER, texture_vertex_buffer);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, texture_element_buffer);
 
-    var size = 2;          // 2 components per iteration
-    var type = gl.FLOAT;   // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;        // start at the beginning of the buffer
-    gl.vertexAttribPointer(0, size, type, normalize, stride, offset)
+	var size = 2;          // 2 components per iteration
+	var type = gl.FLOAT;   // the data is 32bit floats
+	var normalize = false; // don't normalize the data
+	var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+	var offset = 0;        // start at the beginning of the buffer
+	gl.vertexAttribPointer(0, size, type, normalize, stride, offset)
 }
 
 function surfaceVertexAttribute()
 {
-    gl.useProgram(surfaceProgram)
+	gl.useProgram(surfaceProgram)
 
-    vertex_position = gl.getAttribLocation(surfaceProgram, "vertex_position")
+	vertex_position = gl.getAttribLocation(surfaceProgram, "vertex_position")
 
-    gl.enableVertexAttribArray(vertex_position)
-    gl.bindBuffer(gl.ARRAY_BUFFER, surface_vertex_buffer);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, surface_element_buffer);
+	gl.enableVertexAttribArray(vertex_position)
+	gl.bindBuffer(gl.ARRAY_BUFFER, surface_vertex_buffer);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, surface_element_buffer);
 
-    var size = 2;          // 2 components per iteration
-    var type = gl.FLOAT;   // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;        // start at the beginning of the buffer
-    gl.vertexAttribPointer(0, size, type, normalize, stride, offset)
+	var size = 2;          // 2 components per iteration
+	var type = gl.FLOAT;   // the data is 32bit floats
+	var normalize = false; // don't normalize the data
+	var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+	var offset = 0;        // start at the beginning of the buffer
+	gl.vertexAttribPointer(0, size, type, normalize, stride, offset)
 }
 
 function loadAnimationTexture(index) {
@@ -193,129 +193,160 @@ function loadAnimationTexture(index) {
 	return loadRhoTexture(gl, currentURL)
 }
 
-const Modes = {"Animation": 1, "Vibration": 2};
+const Modes = {
+"Animation": 0x1,
+"Vibration": 0x2
+};
+
+const LightModes = {
+"Independent": 0x1,
+"FixedToEye": 0x2
+}
+
 Object.freeze(Modes);
 
 var mode = Modes.Animation;
+var lightMode = LightModes.Independent;
 var defaultRhoTexture;
 var maxAmplitude = 0.5;
+var independentLightPosition = glm.vec3(2.0, 0.0, 0.0);
+var eyePosition;
+var lightPosition;
 
 function render(time)
 {
-    switch ( mode ) {
-        case Modes.Animation:
-        {
-            animationIndex = ( animationIndex + 1 ) % 200;
-            rhoTexture = animationTextures[animationIndex]
-            break;
-        }
-        case Modes.Vibration:
-        {
-            rhoTexture = defaultRhoTexture;
-            break;
-        }
-        default:
-        {
-            console.log("Unknown mode!");
-        }
-    }
+	switch ( mode ) {
+		case Modes.Animation:
+			{
+				animationIndex = ( animationIndex + 1 ) % 200;
+				rhoTexture = animationTextures[animationIndex]
+				break;
+			}
+		case Modes.Vibration:
+			{
+				rhoTexture = defaultRhoTexture;
+				break;
+			}
+		default:
+			{
+				console.log("Unknown mode!");
+			}
+	}
 
+	eyePosition = eye_xyz();
+	switch ( lightMode ) {
+		case LightModes.Independent:
+			{
+				lightPosition = independentLightPosition;
+				break;
+			}
+		case LightModes.FixedToEye:
+			{
+				lightPosition = eyePosition;
+				break;
+			}
+		default:
+			{
+				console.log("Unknown light mode!");
+			}
 
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(.3, .3, .3, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+	}
 
-    let view_matrix = glm.lookAt(
-        eye_position(),
-        glm.vec3(0, 0, 0),
-        glm.vec3(0, 0, 1)
-    )
+	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+	gl.clearColor(.3, .3, .3, 1.0);
+	gl.clear(gl.COLOR_BUFFER_BIT);
 
-    let projection_matrix = glm.perspective( Math.PI / 2, (640 / 480), 0.1, 10000 )
-    // let model_matrix = glm.rotate(time * 0.001, glm.vec3(0, 1, 0))
-    let model_matrix = identity4
+	let view_matrix = glm.lookAt(
+		eye_xyz(),
+		glm.vec3(0, 0, 0),
+		glm.vec3(0, 0, 1)
+	)
 
-    var mvp_programs = [surfaceProgram]
-    mvp_programs.forEach(
-        function (program, index)
-        {
-            gl.useProgram(program)
+	let projection_matrix = glm.perspective( Math.PI / 2, (640 / 480), 0.1, 10000 )
+	// let model_matrix = glm.rotate(time * 0.001, glm.vec3(0, 1, 0))
+	let model_matrix = identity4
 
-            var modelUniformLocation = gl.getUniformLocation(program, "model");
-            var viewUniformLocation = gl.getUniformLocation(program, "view");
-            var projUniformLocation = gl.getUniformLocation(program, "proj");
+	var mvp_programs = [surfaceProgram]
+	mvp_programs.forEach(
+		function (program, index)
+		{
+			gl.useProgram(program)
 
-            gl.uniformMatrix4fv(modelUniformLocation, false, model_matrix.elements)
-            gl.uniformMatrix4fv(viewUniformLocation, false, view_matrix.elements)
-            gl.uniformMatrix4fv(projUniformLocation, false, projection_matrix.elements)
-        }
-    )
+			var modelUniformLocation = gl.getUniformLocation(program, "model");
+			var viewUniformLocation = gl.getUniformLocation(program, "view");
+			var projUniformLocation = gl.getUniformLocation(program, "proj");
 
-    gl.useProgram(surfaceProgram)
-    surfaceVertexAttribute()
+			gl.uniformMatrix4fv(modelUniformLocation, false, model_matrix.elements)
+			gl.uniformMatrix4fv(viewUniformLocation, false, view_matrix.elements)
+			gl.uniformMatrix4fv(projUniformLocation, false, projection_matrix.elements)
+		}
+	)
 
-    gl.activeTexture(gl.TEXTURE0)
-    gl.bindTexture(gl.TEXTURE_2D, rhoTexture)
-    gl.activeTexture(gl.TEXTURE1)
-    gl.bindTexture(gl.TEXTURE_2D, normalsTexture)
+	gl.useProgram(surfaceProgram)
+	surfaceVertexAttribute()
 
-    var rhoSamplerVertexUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler_vertex")
-    var rhoSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler")
-    var normalsSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "normals_sampler")
-    var amplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "amplitude")
-    var phi_offsetUniformLocation = gl.getUniformLocation(surfaceProgram, "phi_offset")
-    var maxAmplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "max_amplitude")
-    var lightPositionUniformLocation = gl.getUniformLocation(surfaceProgram, "light_position")
-    var viewPositionUniformLocation = gl.getUniformLocation(surfaceProgram, "view_position")
-    var drawGridlinesUniformLocation = gl.getUniformLocation(surfaceProgram, "draw_gridlines")
-    var normalColoringUniformLocation = gl.getUniformLocation(surfaceProgram, "normal_coloring")
+	gl.activeTexture(gl.TEXTURE0)
+	gl.bindTexture(gl.TEXTURE_2D, rhoTexture)
+	gl.activeTexture(gl.TEXTURE1)
+	gl.bindTexture(gl.TEXTURE_2D, normalsTexture)
 
-    if ( mode == Modes.Vibration ) 
-    {
-        amplitude = pause ? amplitude : maxAmplitude * Math.cos( time * 0.004 )
-    }
-    else
-    {
-        amplitude = 1.0
-    }
+	var rhoSamplerVertexUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler_vertex")
+	var rhoSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler")
+	var normalsSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "normals_sampler")
+	var amplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "amplitude")
+	var phi_offsetUniformLocation = gl.getUniformLocation(surfaceProgram, "phi_offset")
+	var maxAmplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "max_amplitude")
+	var lightPositionUniformLocation = gl.getUniformLocation(surfaceProgram, "light_position")
+	var viewPositionUniformLocation = gl.getUniformLocation(surfaceProgram, "view_position")
+	var drawGridlinesUniformLocation = gl.getUniformLocation(surfaceProgram, "draw_gridlines")
+	var normalColoringUniformLocation = gl.getUniformLocation(surfaceProgram, "normal_coloring")
 
-    // phi_offset = pause ? phi_offset : time * 0.0001
-    phi_offset = 0.0
+	if ( mode == Modes.Vibration )
+	{
+		amplitude = pause ? amplitude : maxAmplitude * Math.cos( time * 0.004 )
+	}
+	else
+	{
+		amplitude = 1.0
+	}
 
-    gl.uniform1i(rhoSamplerVertexUniformLocation, 0)
-    gl.uniform1i(rhoSamplerUniformLocation, 0)
-    gl.uniform1i(normalsSamplerUniformLocation, 0)
-    gl.uniform1f(amplitudeUniformLocation, amplitude)
-    gl.uniform1f(phi_offsetUniformLocation, phi_offset)
-    gl.uniform1f(maxAmplitudeUniformLocation, 1.0)
-    gl.uniform3fv(lightPositionUniformLocation, eye_position().elements)
-    gl.uniform3fv(viewPositionUniformLocation, eye_position().elements)
-    gl.uniform1i(normalColoringUniformLocation, normalColoring);
-    gl.uniform1i(drawGridlinesUniformLocation, drawGridlines);
+	// phi_offset = pause ? phi_offset : time * 0.0001
+	phi_offset = 0.0
 
-    gl.drawElements(gl.TRIANGLES, ${ELEMENT_INDICES_LENGTH}, gl.UNSIGNED_SHORT, 0)
+	gl.uniform1i(rhoSamplerVertexUniformLocation, 0)
+	gl.uniform1i(rhoSamplerUniformLocation, 0)
+	gl.uniform1i(normalsSamplerUniformLocation, 0)
+	gl.uniform1f(amplitudeUniformLocation, amplitude)
+	gl.uniform1f(phi_offsetUniformLocation, phi_offset)
+	gl.uniform1f(maxAmplitudeUniformLocation, 1.0)
+	gl.uniform3fv(lightPositionUniformLocation, lightPosition.elements)
+	gl.uniform3fv(viewPositionUniformLocation, eyePosition.elements)
+	gl.uniform1i(normalColoringUniformLocation, normalColoring);
+	gl.uniform1i(drawGridlinesUniformLocation, drawGridlines);
 
-    gl.useProgram(textureProgram)
+	gl.drawElements(gl.TRIANGLES, ${ELEMENT_INDICES_LENGTH}, gl.UNSIGNED_SHORT, 0)
 
-    // uniform sampler2D rho_sampler;
-    // uniform float screen_scale;
-    var rhoSamplerUniformLocation = gl.getUniformLocation(textureProgram, "rho_sampler")
-    var screenScaleUniformLocation = gl.getUniformLocation(textureProgram, "screen_scale")
+	gl.useProgram(textureProgram)
 
-    gl.activeTexture(gl.TEXTURE0)
-    gl.bindTexture(gl.TEXTURE_2D, rhoTexture)
-    gl.uniform1i(rhoSamplerUniformLocation, 0)
+	// uniform sampler2D rho_sampler;
+	// uniform float screen_scale;
+	var rhoSamplerUniformLocation = gl.getUniformLocation(textureProgram, "rho_sampler")
+	var screenScaleUniformLocation = gl.getUniformLocation(textureProgram, "screen_scale")
 
-    gl.uniform1f(screenScaleUniformLocation, 1)
+	gl.activeTexture(gl.TEXTURE0)
+	gl.bindTexture(gl.TEXTURE_2D, rhoTexture)
+	gl.uniform1i(rhoSamplerUniformLocation, 0)
 
-    textureVertexAttribute()
+	gl.uniform1f(screenScaleUniformLocation, 1)
 
-    gl.drawElements(gl.TRIANGLE_STRIP, 4, gl.UNSIGNED_BYTE, 0)
+	textureVertexAttribute()
 
-    // console.log(time)
+	gl.drawElements(gl.TRIANGLE_STRIP, 4, gl.UNSIGNED_BYTE, 0)
 
-    requestAnimationFrame(render);
-    // setTimeout( () => { requestAnimationFrame(render) }, 20 )
+	// console.log(time)
+
+	requestAnimationFrame(render);
+	// setTimeout( () => { requestAnimationFrame(render) }, 20 )
 }
 
 var elementIndices = new Uint16Array([ %{ELEMENT_INDICES} ])
