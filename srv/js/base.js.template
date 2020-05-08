@@ -94,6 +94,7 @@ function initialize()
 	}
 
 	gl.enable(gl.DEPTH_TEST)
+	gl.depthFunc(gl.LEQUAL)
 	gl.enable(gl.BLEND)
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
@@ -324,7 +325,17 @@ function render(time)
 	gl.uniform1i(normalColoringUniformLocation, normalColoring);
 	gl.uniform1i(drawGridlinesUniformLocation, drawGridlines);
 
-	gl.drawElements(gl.TRIANGLES, ${ELEMENT_INDICES_LENGTH}, gl.UNSIGNED_SHORT, 0)
+	{
+		var patch_offset = 2 * 61440;
+		var patch_size = 6738;
+
+		gl.drawArrays(gl.TRIANGLES, 0, 61440);
+		gl.drawArrays(gl.TRIANGLES, 61440, 6738);
+	}
+
+	// {
+	// 	gl.drawElements(gl.TRIANGLES, ${ELEMENT_INDICES_LENGTH}, gl.UNSIGNED_SHORT, 0);
+	// }
 
 	gl.useProgram(textureProgram)
 

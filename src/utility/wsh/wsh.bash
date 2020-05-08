@@ -24,11 +24,14 @@ template() {
 
 template_srv() {
 	set -a
-	read ELEMENT_INDICES_LENGTH < <( wc -l < build/icosahedron/indices )
-	read ELEMENT_INDICES_LENGTH < <( echo "3 * ${ELEMENT_INDICES_LENGTH}" | bc )
 
-	ELEMENT_INDICES=build/icosahedron/indices
-	SAMPLE_POSITIONS=build/icosahedron/vertices
+	# ELEMENT_INDICES=build/icosahedron/indices
+	# SAMPLE_POSITIONS=build/icosahedron/vertices
+	ELEMENT_INDICES=build/icosahedron-c++/indices
+	SAMPLE_POSITIONS=build/icosahedron-c++/vertices
+
+	read ELEMENT_INDICES_LENGTH < <( wc -l < ${ELEMENT_INDICES} )
+	# read ELEMENT_INDICES_LENGTH < <( echo "3 * ${ELEMENT_INDICES_LENGTH}" | bc )
 
 	TEXTURE_VERTEX_SHADER=src/shaders/texture/vertex.glsl
 	TEXTURE_FRAGMENT_SHADER=src/shaders/texture/fragment.glsl
