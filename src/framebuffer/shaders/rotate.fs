@@ -56,13 +56,13 @@ void main()
 	vec3 col = texture(screenTexture, newTexCoords).rgb;
 
 	// envelop in gaussian
-	{
-		col = 2.0 * ( col - 0.5 );
-		col.x = col.x * normal_pdf(rotatedPhi * 5, PI, 1);
-		col /= 10.0;
-		col = ( col / 2.0 ) + 0.5;
-		col.yz = vec2(0.0, 0.0);
-	}
+	// {
+	// 	col = 2.0 * ( col - 0.5 );
+	// 	col.x = col.x * normal_pdf(rotatedPhi * 5, PI, 1);
+	// 	col /= 10.0;
+	// 	col = ( col / 2.0 ) + 0.5;
+	// 	col.yz = vec2(0.0, 0.0);
+	// }
 
 	// draw gridlines
 	{
