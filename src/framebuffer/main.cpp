@@ -119,7 +119,7 @@ int main()
 	unsigned int textureColorbuffer;
 	glGenTextures(1, &textureColorbuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
@@ -179,9 +179,9 @@ int main()
 		glfwPollEvents();
 
 		{
-			data = malloc( SCR_WIDTH * SCR_HEIGHT * 3 * sizeof(uint8_t) );
+			data = malloc( SCR_WIDTH * SCR_HEIGHT * 4 * sizeof(uint8_t) );
 			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 			std::stringstream filename {};
 			filename << "build/frames/frame-" << std::setw(3) << std::setfill('0') << i + 1 << ".png";

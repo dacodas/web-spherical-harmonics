@@ -21,7 +21,7 @@ void write_png(size_t row_size, size_t row_number, uint8_t* image, const char* f
 			info,
 			row_size, row_number,
 			8,
-			PNG_COLOR_TYPE_RGB,
+			PNG_COLOR_TYPE_RGBA,
 			PNG_INTERLACE_NONE,
 			PNG_COMPRESSION_TYPE_DEFAULT,
 			PNG_FILTER_TYPE_DEFAULT
@@ -32,7 +32,7 @@ void write_png(size_t row_size, size_t row_number, uint8_t* image, const char* f
 
 	for ( size_t i = 0; i < row_number; ++i )
 	{
-		uint8_t* row_start = image + 3 * row_size * i;
+		uint8_t* row_start = image + 4 * row_size * i;
 		png_write_row(png, (png_const_bytep) row_start);
 	}
 
