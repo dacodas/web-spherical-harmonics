@@ -1,7 +1,7 @@
 var gl;
 var positions;
 var rhoTextureURL = '/spherical-harmonics/images/rho.png';
-var normalsTextureURL = '/spherical-harmonics/images/rho-normals.png';
+var gridlinesTextureURL = '/spherical-harmonics/images/gridlines.png';
 
 var eye = {'rho': 2.5, 'theta': Math.PI / 2.0, 'phi': 0}
 
@@ -11,7 +11,7 @@ var identity4 = glm.mat4(1, 0, 0, 0,
 	0, 0, 0, 1)
 
 var rhoTexture;
-var normalsTexture;
+var gridlinesTexture;
 var textureProgram;
 var texture_vertex_buffer;
 var texture_element_buffer;
@@ -49,7 +49,7 @@ function initializeTextureBuffers()
 {
 	// rhoTexture = loadRhoTexture(gl, "test.pgm")
 	rhoTexture = loadRhoTexture(gl, rhoTextureURL)
-	normalsTexture = loadRhoTexture(gl, normalsTextureURL)
+	gridlinesTexture = loadRhoTexture(gl, gridlinesTextureURL)
 	textureProgram = createProgramFromScriptSource(gl, "texture-vertex-shader", "texture-fragment-shader");
 
 	texture_vertex_buffer = gl.createBuffer()
@@ -289,11 +289,11 @@ function render(time)
 	gl.activeTexture(gl.TEXTURE0)
 	gl.bindTexture(gl.TEXTURE_2D, rhoTexture)
 	gl.activeTexture(gl.TEXTURE1)
-	gl.bindTexture(gl.TEXTURE_2D, normalsTexture)
+	gl.bindTexture(gl.TEXTURE_2D, gridlinesTexture)
 
 	var rhoSamplerVertexUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler_vertex")
 	var rhoSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "rho_sampler")
-	var normalsSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "normals_sampler")
+	var gridlinesSamplerUniformLocation = gl.getUniformLocation(surfaceProgram, "gridlines_sampler")
 	var amplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "amplitude")
 	var phi_offsetUniformLocation = gl.getUniformLocation(surfaceProgram, "phi_offset")
 	var maxAmplitudeUniformLocation = gl.getUniformLocation(surfaceProgram, "max_amplitude")
@@ -316,7 +316,7 @@ function render(time)
 
 	gl.uniform1i(rhoSamplerVertexUniformLocation, 0)
 	gl.uniform1i(rhoSamplerUniformLocation, 0)
-	gl.uniform1i(normalsSamplerUniformLocation, 0)
+	gl.uniform1i(gridlinesSamplerUniformLocation, 1)
 	gl.uniform1f(amplitudeUniformLocation, amplitude)
 	gl.uniform1f(phi_offsetUniformLocation, phi_offset)
 	gl.uniform1f(maxAmplitudeUniformLocation, 1.0)
