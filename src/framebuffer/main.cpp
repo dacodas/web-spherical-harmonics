@@ -100,7 +100,7 @@ int main()
 
 	// load textures
 	// -------------
-	unsigned int rhoTexture = loadTexture("/mnt/gentoo-home/dacoda/projects/web-spherical-harmonics/src/texture-generator/new/build/harmonics/png/harmonic-020-010.png");
+	unsigned int rhoTexture = loadTexture("/mnt/gentoo-home/dacoda/projects/web-spherical-harmonics/src/texture-generator/build/harmonics/png/harmonic-020-010.png");
 
 	// shader configuration
 	// --------------------
@@ -280,5 +280,3 @@ unsigned int loadTexture(char const * path)
 
 	return textureID;
 }
-
-

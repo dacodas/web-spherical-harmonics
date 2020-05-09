@@ -53,7 +53,7 @@ void main()
 
 	vec2 newTexCoords = vec2( rotatedPhi / ( PI * 2.0 ), rotatedTheta / PI);
 
-	vec3 col = texture(screenTexture, newTexCoords).rgb;
+	vec4 col = texture(screenTexture, newTexCoords);
 
 	// envelop in gaussian
 	// {
@@ -64,15 +64,5 @@ void main()
 	// 	col.yz = vec2(0.0, 0.0);
 	// }
 
-	// draw gridlines
-	{
-		int thetaIndex = int(newTexCoords.g * 1000);
-		int phiIndex = int(newTexCoords.r * 1000);
-		if ( thetaIndex % 100 < 5 || phiIndex % 100 < 5 )
-		{
-			col = vec3(0.0, 0.0, 0.0);
-		}
-	}
-
-	FragColor = vec4(col, 1.0);
+	FragColor = col;
 }
