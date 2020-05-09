@@ -2,6 +2,14 @@
 
 # TODO
 
+## [DONE] Texture for gridlines
+
+## Create Makefile and tie things together
+
+## Separate patch and sphere, no overlapping or z-fighting
+
+## Be able to rotate double textures instead of reading uint16 textures
+
 ## [TENTATIVELY DONE] Figure out seam 
 
 After calculating the normals on the fly, this problem appears to have gone away. 
