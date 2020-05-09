@@ -107,8 +107,6 @@ function setupControls()
 {
 	document.addEventListener('keydown', function (event) {
 
-		console.log(event.key + " " + event.keyCode)
-
 		if (event.defaultPrevented) {
 			return;
 		}
@@ -149,8 +147,6 @@ function setupControls()
 		{
 			pause = !pause
 		}
-
-		console.log(eye_xyz().elements)
 	});
 }
 
